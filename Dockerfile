@@ -65,6 +65,5 @@ RUN mkdir -p /db /conf \
 
 EXPOSE 9998
 
-VOLUME /conf
 
 CMD ["node", "index.js"]
