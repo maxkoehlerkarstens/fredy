@@ -1,0 +1,249 @@
+/*
+ * Copyright (c) 2026 by Christian Kellner.
+ * Licensed under Apache-2.0 with Commons Clause and Attribution/Naming Clause
+ */
+
+@import '../../tokens.less';
+
+// Kopf und Zeile teilen sich diese eine Definition. Zwei getrennte Angaben waeren zwei Stellen,
+// die uebereinstimmen muessen, und ein Kopf, der nicht ueber seinen Spalten steht, ist schlimmer
+// als gar kein Kopf.
+//
+// Bild, Inserat, Preis, Adresse, Anbieter, Datum, Status, Aktionen. Die letzte Spalte ist fest:
+// mit `auto` war sie so breit wie ihr Inhalt, und eine Zeile mit einem Knopf mehr verschob damit
+// alle ihre uebrigen Spalten gegenueber jeder anderen Zeile. 124px sind vier Knoepfe zu 28px plus
+// drei Gaps zu @space-1.
+@listing-columns: 56px minmax(0, 1fr) 132px 180px 112px 96px 104px 124px;
+@listing-columns-900: 56px minmax(0, 1fr) 132px 104px 124px;
+@listing-columns-560: 56px minmax(0, 1fr) 124px;
+
+.listingsTable {
+  display: flex;
+  flex-direction: column;
+  gap: @space-1;
+
+  &__head {
+    display: grid;
+    grid-template-columns: @listing-columns;
+    gap: @space-3;
+    align-items: center;
+    padding: 0 @space-3 @space-2;
+    border-bottom: 1px solid @color-border;
+    font-size: @text-xs;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: @color-muted;
+
+    &__right {
+      text-align: right;
+    }
+
+    @media (max-width: 900px) {
+      grid-template-columns: @listing-columns-900;
+
+      span:nth-child(4),
+      span:nth-child(5),
+      span:nth-child(6) {
+        display: none;
+      }
+    }
+
+    @media (max-width: 560px) {
+      grid-template-columns: @listing-columns-560;
+
+      span:nth-child(3),
+      span:nth-child(7) {
+        display: none;
+      }
+    }
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: @listing-columns;
+    align-items: center;
+    gap: @space-3;
+    min-height: 52px;
+    padding: @space-2 @space-3;
+    background: @color-elevated;
+    border: 1px solid @color-border;
+    border-radius: @radius-chip;
+    cursor: pointer;
+    transition: background @transition-fast;
+
+    &:hover {
+      background: @color-solid;
+    }
+
+    &__thumb {
+      width: 56px;
+      height: 40px;
+      flex-shrink: 0;
+      border-radius: @radius-chip;
+      overflow: hidden;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+    }
+
+    &__title {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: @space-1;
+    }
+
+    &__title-text {
+      font-weight: 600;
+      font-size: @text-sm;
+      color: @color-text;
+      text-decoration: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      &:hover {
+        color: @color-text;
+        text-decoration: underline;
+      }
+
+      &:focus-visible {
+        outline: 2px solid @color-accent;
+        outline-offset: 2px;
+        border-radius: @radius-chip;
+      }
+    }
+
+    &__flags {
+      display: flex;
+      align-items: center;
+      gap: @space-1;
+      flex-wrap: wrap;
+    }
+
+    // Statt opacity: 0.6 auf der ganzen Zeile, was jede Beschriftung darin von 5,43 zu 1 auf
+    // 2,64 zu 1 gedrueckt hat. Jetzt sagt es ein Chip, und der Rest der Zeile bleibt lesbar.
+    &__inactive {
+      display: inline-flex;
+      align-items: center;
+      height: 20px;
+      padding: 0 @space-2;
+      border-radius: @radius-chip;
+      background: @color-elevated;
+      border: 1px solid @color-border-bright;
+      color: @color-muted;
+      font-size: @text-xs;
+      line-height: 1;
+    }
+
+    &__price {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0;
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    // Wie in der Kachel: keine Farbe, Tabellenziffern. In einer Spalte untereinander ist das der
+    // Unterschied zwischen vergleichen koennen und nicht.
+    &__amount {
+      font-family: @font-mono;
+      font-size: 13px;
+      font-weight: 700;
+      color: @color-text;
+      font-variant-numeric: tabular-nums;
+    }
+
+    &__perSqm {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: @space-1;
+      flex-wrap: wrap;
+      row-gap: @space-1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    &__address {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: @space-1;
+      font-size: @text-xs;
+      color: @color-muted;
+    }
+
+    &__address-text {
+      display: flex;
+      align-items: center;
+      gap: @space-1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      .semi-icon {
+        flex-shrink: 0;
+      }
+    }
+
+    &__meta {
+      font-size: @text-xs;
+      color: @color-muted;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    // War @color-faint: 2,19 zu 1 auf @color-elevated.
+    &__date {
+      font-size: @text-xs;
+      color: @color-muted;
+      white-space: nowrap;
+    }
+
+    &__status {
+      min-width: 0;
+      display: flex;
+
+      .status-btn {
+        max-width: 100%;
+      }
+    }
+
+    &__actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: @space-1;
+    }
+
+    &__empty {
+      color: @color-muted;
+    }
+
+    @media (max-width: 900px) {
+      grid-template-columns: @listing-columns-900;
+
+      .listingsTable__row__address,
+      .listingsTable__row__meta,
+      .listingsTable__row__date {
+        display: none;
+      }
+    }
+
+    @media (max-width: 560px) {
+      grid-template-columns: @listing-columns-560;
+
+      .listingsTable__row__price,
+      .listingsTable__row__status {
+        display: none;
+      }
+    }
+  }
+}

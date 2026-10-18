@@ -1,0 +1,139 @@
+/*
+ * The names the rest of the app styles against.
+ *
+ * Every colour here is an alias onto a custom property, and the values behind those properties
+ * live in themes.less - one block per theme. Nothing in this file resolves to a hex, which is the
+ * point: a rule written against `@color-surface` follows whichever theme the body carries instead
+ * of freezing the dark one into the build.
+ *
+ * Two consequences worth knowing before adding to this file:
+ *
+ *  - Less colour functions (`fade`, `darken`, `lighten`) cannot operate on a custom property, so a
+ *    colour that needs an alpha variant needs its channels published too. Those are the `-rgb`
+ *    aliases; use them as `rgb(@color-accent-rgb / 20%)`.
+ *  - This file must stay free of rules. It is imported by roughly forty stylesheets, and anything
+ *    that emits CSS here is emitted forty times.
+ */
+
+// Backgrounds
+@color-base: var(--f-base);
+@color-surface: var(--f-surface);
+@color-surface-rgb: var(--f-surface-rgb);
+@color-elevated: var(--f-elevated);
+// Hovered rows and list entries, and the flat fill behind chips, pills and code.
+@color-hover: var(--f-hover);
+@color-solid: var(--f-solid);
+@color-border: var(--f-border);
+@color-border-bright: var(--f-border-bright);
+
+// Accent
+@color-accent: var(--f-accent);
+@color-accent-rgb: var(--f-accent-rgb);
+@color-accent-dim: var(--f-accent-dim);
+@color-accent-glow: var(--f-accent-glow);
+@color-accent-text: var(--f-accent-text);
+
+// Text
+@color-text: var(--f-text);
+@color-muted: var(--f-muted);
+@color-faint: var(--f-faint);
+
+// Semantic
+@color-success: var(--f-success);
+@color-success-rgb: var(--f-success-rgb);
+@color-success-dim: var(--f-success-dim);
+@color-success-active: var(--f-success-active);
+@color-error: var(--f-error);
+@color-error-rgb: var(--f-error-rgb);
+@color-error-dim: var(--f-error-dim);
+@color-warning: var(--f-warning);
+@color-info: var(--f-info);
+@color-info-rgb: var(--f-info-rgb);
+
+// Fill overlays
+@color-fill-subtle: var(--f-fill-subtle);
+@color-fill-1: var(--f-fill-1);
+@color-fill-2: var(--f-fill-2);
+@color-fill-overlay: var(--f-fill-2);
+@color-fill-strong: var(--f-fill-strong);
+@color-input-bg: var(--f-input-bg);
+@color-input-border: var(--f-input-border);
+
+// Scrims and shadows
+@color-scrim: var(--f-scrim);
+@shadow-sm: var(--f-shadow-sm);
+@shadow-md: var(--f-shadow-md);
+@shadow-lg: var(--f-shadow-lg);
+
+// KPI card accents
+@color-blue-text: var(--f-blue-text);
+@color-blue-border: var(--f-blue-border);
+@color-blue-bg: var(--f-blue-bg);
+@color-orange-text: var(--f-orange-text);
+@color-orange-text-rgb: var(--f-orange-text-rgb);
+@color-orange-border: var(--f-orange-border);
+@color-orange-bg: var(--f-orange-bg);
+@color-green-text: var(--f-green-text);
+@color-green-border: var(--f-green-border);
+@color-green-bg: var(--f-green-bg);
+@color-purple-text: var(--f-purple-text);
+@color-purple-text-rgb: var(--f-purple-text-rgb);
+@color-purple-border: var(--f-purple-border);
+@color-purple-bg: var(--f-purple-bg);
+@color-gray-text: var(--f-gray-text);
+@color-gray-border: var(--f-gray-border);
+@color-gray-bg: var(--f-gray-bg);
+
+// Donate button aurora
+@color-aurora-1: var(--f-aurora-1);
+@color-aurora-2: var(--f-aurora-2);
+@color-aurora-3: var(--f-aurora-3);
+
+// Map overlay panels
+@color-map-panel: var(--f-map-panel);
+@color-map-panel-border: var(--f-map-panel-border);
+@color-map-panel-text: var(--f-map-panel-text);
+@color-map-panel-strong: var(--f-map-panel-strong);
+
+// Vorschaukacheln des Themenwaehlers
+@color-preview-dark-bg: var(--f-preview-dark-bg);
+@color-preview-dark-line: var(--f-preview-dark-line);
+@color-preview-light-bg: var(--f-preview-light-bg);
+@color-preview-light-line: var(--f-preview-light-line);
+
+// Typography
+@font-ui: 'Outfit', system-ui, sans-serif;
+@font-mono: 'JetBrains Mono', monospace;
+
+@text-xs: 11px;
+@text-sm: 12px;
+@text-base: 14px;
+@text-md: 16px;
+@text-lg: 20px;
+@text-xl: 24px;
+
+// Spacing
+@space-1: 4px;
+@space-2: 8px;
+@space-3: 12px;
+@space-4: 16px;
+@space-5: 20px;
+@space-6: 24px;
+@space-8: 32px;
+@space-12: 48px;
+
+// Radius
+// Softer than the 8/4/3 this used to be. The tight corners were chosen to stop the app reading as
+// playful, but the warm palette does that job better and at these radii nothing looks like a
+// spreadsheet either. Buttons and cards differ by design: a card is a surface and can afford the
+// rounding, a control is a target and stays crisper than the thing it sits on.
+@radius-input: 8px;
+@radius-card: 12px;
+@radius-btn: 8px;
+@radius-pill: 9999px;
+@radius-chip: 6px;
+
+// Transitions
+@transition-fast: 0.15s ease-in-out;
+@transition-card: 0.18s ease-in-out;
+@transition-sidebar: width 0.25s ease-in-out;

@@ -1,0 +1,1084 @@
+{
+  "header": {
+    "id": "168963883",
+    "title": "Beschreibung",
+    "fraudReportUrl": "https://angebot-melden.immobilienscout24.de/report?realEstateId=168963883&publicationState=live",
+    "displayStatusIcon": true,
+    "shareMessage": "Dieses Angebot habe ich bei ImmoScout24 gefunden:\nhttps://www.immobilienscout24.de/expose/168963883?utm_medium=social&utm_campaign=expose_sharing&utm_content=expose_toolbar&utm_source=other&referrer=taf\n\n        Details\n-------------------------\nKaltmiete 17,51 €/m²: 2.300 €\nZimmer:         2\nWohnfläche:     131,37 m²\nWarmmiete:      2.780 €\n\nKölner Straße 223\n40227 Oberbilk, Düsseldorf",
+    "publicationState": "active",
+    "isTenantNetwork": false,
+    "realEstateType": "apartmentrent"
+  },
+  "sections": [
+    {
+      "type": "MEDIA",
+      "featuredBarColor": "#343434",
+      "media": [
+        {
+          "type": "PICTURE",
+          "caption": "Wohn- und Arbeitsbereich_TITEL",
+          "previewImageUrl": "https://pictures.immobilienscout24.de/listings/ba3969a3-72d1-4094-b026-ec9476786b82-2063887398.jpg/ORIG/resize/800x600/format/webp/quality/80",
+          "imageUrlForWeb": "https://pictures.immobilienscout24.de/listings/ba3969a3-72d1-4094-b026-ec9476786b82-2063887398.jpg/ORIG/legacy_thumbnail/%WIDTH%x%HEIGHT%/format/jpg",
+          "fullImageUrl": "https://pictures.immobilienscout24.de/listings/ba3969a3-72d1-4094-b026-ec9476786b82-2063887398.jpg/ORIG/resize/1500x1000/format/webp/quality/80"
+        },
+        {
+          "type": "PICTURE",
+          "caption": "Wohn- und Arbeitsbereich",
+          "previewImageUrl": "https://pictures.immobilienscout24.de/listings/8a411976-57f9-4623-9b14-1eb5ce0a8e45-2051607404.png/ORIG/resize/800x600/format/webp/quality/80",
+          "imageUrlForWeb": "https://pictures.immobilienscout24.de/listings/8a411976-57f9-4623-9b14-1eb5ce0a8e45-2051607404.png/ORIG/legacy_thumbnail/%WIDTH%x%HEIGHT%/format/jpg",
+          "fullImageUrl": "https://pictures.immobilienscout24.de/listings/8a411976-57f9-4623-9b14-1eb5ce0a8e45-2051607404.png/ORIG/resize/1500x1000/format/webp/quality/80"
+        },
+        {
+          "type": "PICTURE",
+          "caption": "Küche und Essbereich",
+          "previewImageUrl": "https://pictures.immobilienscout24.de/listings/30abea66-2c6a-462a-a8d4-957a9dc7da09-2051607339.png/ORIG/resize/800x600/format/webp/quality/80",
+          "imageUrlForWeb": "https://pictures.immobilienscout24.de/listings/30abea66-2c6a-462a-a8d4-957a9dc7da09-2051607339.png/ORIG/legacy_thumbnail/%WIDTH%x%HEIGHT%/format/jpg",
+          "fullImageUrl": "https://pictures.immobilienscout24.de/listings/30abea66-2c6a-462a-a8d4-957a9dc7da09-2051607339.png/ORIG/resize/1500x1000/format/webp/quality/80"
+        },
+        {
+          "type": "PICTURE",
+          "caption": "Treppe (1)",
+          "previewImageUrl": "https://pictures.immobilienscout24.de/listings/3fc9e505-378f-4125-9a01-a4ce2072d639-2051607374.png/ORIG/resize/800x600/format/webp/quality/80",
+          "imageUrlForWeb": "https://pictures.immobilienscout24.de/listings/3fc9e505-378f-4125-9a01-a4ce2072d639-2051607374.png/ORIG/legacy_thumbnail/%WIDTH%x%HEIGHT%/format/jpg",
+          "fullImageUrl": "https://pictures.immobilienscout24.de/listings/3fc9e505-378f-4125-9a01-a4ce2072d639-2051607374.png/ORIG/resize/1500x1000/format/webp/quality/80"
+        },
+        {
+          "type": "PICTURE",
+          "caption": "Schlafzimmer",
+          "previewImageUrl": "https://pictures.immobilienscout24.de/listings/e6d5112a-6bab-40cc-8804-364218ca1476-2051607358.png/ORIG/resize/800x600/format/webp/quality/80",
+          "imageUrlForWeb": "https://pictures.immobilienscout24.de/listings/e6d5112a-6bab-40cc-8804-364218ca1476-2051607358.png/ORIG/legacy_thumbnail/%WIDTH%x%HEIGHT%/format/jpg",
+          "fullImageUrl": "https://pictures.immobilienscout24.de/listings/e6d5112a-6bab-40cc-8804-364218ca1476-2051607358.png/ORIG/resize/1500x1000/format/webp/quality/80"
+        },
+        {
+          "type": "PICTURE",
+          "caption": "Ankleide",
+          "previewImageUrl": "https://pictures.immobilienscout24.de/listings/77b0861c-de1d-405c-bc5d-94c81eda5da7-2051607291.png/ORIG/resize/800x600/format/webp/quality/80",
+          "imageUrlForWeb": "https://pictures.immobilienscout24.de/listings/77b0861c-de1d-405c-bc5d-94c81eda5da7-2051607291.png/ORIG/legacy_thumbnail/%WIDTH%x%HEIGHT%/format/jpg",
+          "fullImageUrl": "https://pictures.immobilienscout24.de/listings/77b0861c-de1d-405c-bc5d-94c81eda5da7-2051607291.png/ORIG/resize/1500x1000/format/webp/quality/80"
+        },
+        {
+          "type": "PICTURE",
+          "caption": "Bad2 (Dusch- und Wannenbad",
+          "previewImageUrl": "https://pictures.immobilienscout24.de/listings/929fad35-3e6c-457d-a5d4-e3af13eb36fe-2051607326.png/ORIG/resize/800x600/format/webp/quality/80",
+          "imageUrlForWeb": "https://pictures.immobilienscout24.de/listings/929fad35-3e6c-457d-a5d4-e3af13eb36fe-2051607326.png/ORIG/legacy_thumbnail/%WIDTH%x%HEIGHT%/format/jpg",
+          "fullImageUrl": "https://pictures.immobilienscout24.de/listings/929fad35-3e6c-457d-a5d4-e3af13eb36fe-2051607326.png/ORIG/resize/1500x1000/format/webp/quality/80"
+        },
+        {
+          "type": "PICTURE",
+          "caption": "Bad1 (Dusch- und Wannenbad)",
+          "previewImageUrl": "https://pictures.immobilienscout24.de/listings/b8d3fe7b-a9b5-40d7-8280-8a1855d43807-2051607321.png/ORIG/resize/800x600/format/webp/quality/80",
+          "imageUrlForWeb": "https://pictures.immobilienscout24.de/listings/b8d3fe7b-a9b5-40d7-8280-8a1855d43807-2051607321.png/ORIG/legacy_thumbnail/%WIDTH%x%HEIGHT%/format/jpg",
+          "fullImageUrl": "https://pictures.immobilienscout24.de/listings/b8d3fe7b-a9b5-40d7-8280-8a1855d43807-2051607321.png/ORIG/resize/1500x1000/format/webp/quality/80"
+        },
+        {
+          "type": "PICTURE",
+          "caption": "Treppe (2)",
+          "previewImageUrl": "https://pictures.immobilienscout24.de/listings/4221fee5-0832-459a-b837-4cb497994459-2051607385.png/ORIG/resize/800x600/format/webp/quality/80",
+          "imageUrlForWeb": "https://pictures.immobilienscout24.de/listings/4221fee5-0832-459a-b837-4cb497994459-2051607385.png/ORIG/legacy_thumbnail/%WIDTH%x%HEIGHT%/format/jpg",
+          "fullImageUrl": "https://pictures.immobilienscout24.de/listings/4221fee5-0832-459a-b837-4cb497994459-2051607385.png/ORIG/resize/1500x1000/format/webp/quality/80"
+        },
+        {
+          "type": "PICTURE",
+          "caption": "Ansicht Loft",
+          "previewImageUrl": "https://pictures.immobilienscout24.de/listings/9b1e5c59-6a04-4aba-bcfb-ecebf878f88a-2051607308.png/ORIG/resize/800x600/format/webp/quality/80",
+          "imageUrlForWeb": "https://pictures.immobilienscout24.de/listings/9b1e5c59-6a04-4aba-bcfb-ecebf878f88a-2051607308.png/ORIG/legacy_thumbnail/%WIDTH%x%HEIGHT%/format/jpg",
+          "fullImageUrl": "https://pictures.immobilienscout24.de/listings/9b1e5c59-6a04-4aba-bcfb-ecebf878f88a-2051607308.png/ORIG/resize/1500x1000/format/webp/quality/80"
+        },
+        {
+          "type": "PICTURE",
+          "caption": "Ansicht Rückseite",
+          "previewImageUrl": "https://pictures.immobilienscout24.de/listings/d482c1f9-aa06-4229-8094-993256e02917-2051607316.png/ORIG/resize/800x600/format/webp/quality/80",
+          "imageUrlForWeb": "https://pictures.immobilienscout24.de/listings/d482c1f9-aa06-4229-8094-993256e02917-2051607316.png/ORIG/legacy_thumbnail/%WIDTH%x%HEIGHT%/format/jpg",
+          "fullImageUrl": "https://pictures.immobilienscout24.de/listings/d482c1f9-aa06-4229-8094-993256e02917-2051607316.png/ORIG/resize/1500x1000/format/webp/quality/80"
+        },
+        {
+          "type": "PICTURE",
+          "caption": "Wohn- und Arbeitsbereich (1)",
+          "previewImageUrl": "https://pictures.immobilienscout24.de/listings/05e4adf3-d6b7-490e-a001-5123020e3271-2051607390.jpeg/ORIG/resize/800x600/format/webp/quality/80",
+          "imageUrlForWeb": "https://pictures.immobilienscout24.de/listings/05e4adf3-d6b7-490e-a001-5123020e3271-2051607390.jpeg/ORIG/legacy_thumbnail/%WIDTH%x%HEIGHT%/format/jpg",
+          "fullImageUrl": "https://pictures.immobilienscout24.de/listings/05e4adf3-d6b7-490e-a001-5123020e3271-2051607390.jpeg/ORIG/resize/1500x1000/format/webp/quality/80"
+        },
+        {
+          "type": "PICTURE",
+          "caption": "Ankleide (1)",
+          "previewImageUrl": "https://pictures.immobilienscout24.de/listings/98978d81-4a86-4509-a4c3-4bb1fe1ad184-2051607281.jpeg/ORIG/resize/800x600/format/webp/quality/80",
+          "imageUrlForWeb": "https://pictures.immobilienscout24.de/listings/98978d81-4a86-4509-a4c3-4bb1fe1ad184-2051607281.jpeg/ORIG/legacy_thumbnail/%WIDTH%x%HEIGHT%/format/jpg",
+          "fullImageUrl": "https://pictures.immobilienscout24.de/listings/98978d81-4a86-4509-a4c3-4bb1fe1ad184-2051607281.jpeg/ORIG/resize/1500x1000/format/webp/quality/80"
+        },
+        {
+          "type": "PICTURE",
+          "caption": "Schlafzimmer (1)",
+          "previewImageUrl": "https://pictures.immobilienscout24.de/listings/36761453-e416-4398-b6f6-16986320e940-2051607349.png/ORIG/resize/800x600/format/webp/quality/80",
+          "imageUrlForWeb": "https://pictures.immobilienscout24.de/listings/36761453-e416-4398-b6f6-16986320e940-2051607349.png/ORIG/legacy_thumbnail/%WIDTH%x%HEIGHT%/format/jpg",
+          "fullImageUrl": "https://pictures.immobilienscout24.de/listings/36761453-e416-4398-b6f6-16986320e940-2051607349.png/ORIG/resize/1500x1000/format/webp/quality/80"
+        },
+        {
+          "type": "PICTURE",
+          "caption": "Grundriss EG",
+          "previewImageUrl": "https://pictures.immobilienscout24.de/listings/5522c4d0-dbed-45fe-a432-a7a94b1b7d21-2051611044.png/ORIG/resize/800x600/format/webp/quality/80",
+          "imageUrlForWeb": "https://pictures.immobilienscout24.de/listings/5522c4d0-dbed-45fe-a432-a7a94b1b7d21-2051611044.png/ORIG/legacy_thumbnail/%WIDTH%x%HEIGHT%/format/jpg",
+          "fullImageUrl": "https://pictures.immobilienscout24.de/listings/5522c4d0-dbed-45fe-a432-a7a94b1b7d21-2051611044.png/ORIG/resize/1500x1000/format/webp/quality/80"
+        },
+        {
+          "type": "PICTURE",
+          "caption": "Grundriss OG",
+          "previewImageUrl": "https://pictures.immobilienscout24.de/listings/54fa67d7-0f6c-4107-b26a-473207876d3d-2051611123.png/ORIG/resize/800x600/format/webp/quality/80",
+          "imageUrlForWeb": "https://pictures.immobilienscout24.de/listings/54fa67d7-0f6c-4107-b26a-473207876d3d-2051611123.png/ORIG/legacy_thumbnail/%WIDTH%x%HEIGHT%/format/jpg",
+          "fullImageUrl": "https://pictures.immobilienscout24.de/listings/54fa67d7-0f6c-4107-b26a-473207876d3d-2051611123.png/ORIG/resize/1500x1000/format/webp/quality/80"
+        }
+      ]
+    },
+    {
+      "type": "TOP_ATTRIBUTES",
+      "attributes": [
+        {
+          "label": "Kaltmiete 17,51 €/m²",
+          "highlighted": true,
+          "text": "2.300 €",
+          "type": "TEXT"
+        },
+        {
+          "label": "Zimmer",
+          "text": "2",
+          "type": "TEXT"
+        },
+        {
+          "label": "Wohnfläche",
+          "text": "131,37 m²",
+          "type": "TEXT"
+        },
+        {
+          "label": "Warmmiete",
+          "text": "2.780 €",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "type": "TITLE",
+      "title": "Loft mit eigenem Garten: 131 m² auf zwei Ebenen, Erstbezug"
+    },
+    {
+      "type": "RELOCATION",
+      "text": "Was kostet mich der Umzug?",
+      "subText": "Angebote kostenlos erhalten",
+      "reference": {
+        "label": "",
+        "url": "is24://retargetRelocation?pag_source=expose_criteria&floor=0&street=K%C3%B6lner%20Stra%C3%9Fe&houseNumber=223&postcode=40227&city=D%C3%BCsseldorf",
+        "type": "URL_LINK",
+        "target": "INTERNAL",
+        "trackingConfig": {
+          "category": "expose",
+          "action": "consumerservices",
+          "label": "relocation_criteria",
+          "event_name": "productintegration_click",
+          "event_product": "search",
+          "parameters": {
+            "event_parameter_1": "relocation_criteria"
+          }
+        }
+      }
+    },
+    {
+      "type": "MAP",
+      "title": "Karte",
+      "location": {
+        "lat": 51.21718,
+        "lng": 6.80224
+      },
+      "addressLine1": "Kölner Straße 223",
+      "addressLine2": "40227 Oberbilk, Düsseldorf",
+      "zipCodeShapes": [],
+      "enableEnterFullAddressAction": true
+    },
+    {
+      "type": "REFERENCE_LIST",
+      "references": [
+        {
+          "label": "Preisentwicklung zu dieser Region ansehen",
+          "url": "https://www.immobilienscout24.de/Suche/controller/executePriceInsightsSimple/region?realestatetype=apartmentrent&geocodes=/de/nordrhein-westfalen/duesseldorf/stadtbezirk-3/oberbilk&utm_medium=app&utm_source=iphone&utm_campaign=resultlist_price_insights&utm_content=expose_pricedev",
+          "type": "URL_LINK",
+          "target": "WEB_INTERNAL",
+          "trackingConfig": {
+            "category": "expose",
+            "action": "atlas_tapped",
+            "label": "txt_link_address",
+            "event_name": "productintegration_click",
+            "event_product": "search",
+            "parameters": {
+              "event_parameter_1": "txt_link_address"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "TRAVELTIME",
+      "isBlocked": false,
+      "exposeId": "168963883",
+      "address": "Kölner Straße 223, 40227 Oberbilk, Düsseldorf",
+      "location": {
+        "lat": 51.21718,
+        "lng": 6.80224
+      }
+    },
+    {
+      "type": "ATTRIBUTE_LIST",
+      "title": "Hauptkriterien",
+      "attributes": [
+        {
+          "type": "TEXT",
+          "label": "Wohnungstyp:",
+          "text": "Loft"
+        },
+        {
+          "type": "TEXT",
+          "label": "Wohnfläche ca.:",
+          "text": "131,37 m²"
+        },
+        {
+          "type": "TEXT",
+          "label": "Nutzfläche ca.:",
+          "text": "57,66 m²"
+        },
+        {
+          "type": "TEXT",
+          "label": "Etage:",
+          "text": "0 von 2"
+        },
+        {
+          "type": "TEXT",
+          "label": "Etagenzahl:",
+          "text": "2"
+        },
+        {
+          "type": "TEXT",
+          "label": "Schlafzimmer:",
+          "text": "1"
+        },
+        {
+          "type": "TEXT",
+          "label": "Badezimmer:",
+          "text": "1"
+        },
+        {
+          "type": "TEXT",
+          "label": "Bezugsfrei ab:",
+          "text": "01.07.2026"
+        },
+        {
+          "type": "TEXT",
+          "label": "Haustiere:",
+          "text": "nach Vereinbarung"
+        },
+        {
+          "type": "CHECK",
+          "label": "Balkon/Terrasse:"
+        },
+        {
+          "type": "CHECK",
+          "label": "Keller:"
+        },
+        {
+          "type": "CHECK",
+          "label": "Einbauküche:"
+        },
+        {
+          "type": "CHECK",
+          "label": "Garten/-mitbenutzung:"
+        },
+        {
+          "type": "LINK",
+          "label": "SCHUFA-BonitätsCheck:",
+          "reference": {
+            "type": "URL_LINK",
+            "label": "Online anfordern",
+            "url": "https://bonitaetscheck.immobilienscout24.de/?utm_medium=app&utm_source=ios&utm_campaign=solvency_check&utm_content=residential_expose_criteria",
+            "target": "WEB_INTERNAL",
+            "trackingConfig": {
+              "category": "expose",
+              "action": "consumerservices",
+              "label": "solvencycheck_criteria",
+              "event_name": "productintegration_click",
+              "event_product": "search",
+              "parameters": {
+                "event_parameter_1": "solvencycheck_criteria"
+              }
+            }
+          }
+        },
+        {
+          "type": "LINK",
+          "label": "Internet:",
+          "reference": {
+            "type": "URL_LINK",
+            "iconUrl": "https://www.immobilienscout24.de/content/dam/is24/expose-snippets/services/powered-by-telekom-new.png",
+            "label": "Tarife ansehen",
+            "secondaryLabel": "bis zu 175 MBit/s",
+            "additionalInfoText": "Die Geschwindigkeitsangabe ist eine unverbindliche Angabe auf Basis der Standortadresse. Verbindliche Verfügbarkeitsprüfungen werden erst bei einer Bestellung durchgeführt.",
+            "url": "https://rebrand.ly/speedcheckandroidapp?address=eyJvcnQiOiJE%2FHNzZWxkb3JmIiwib3J0c3RlaWwiOiIiLCJzdHJhc3NlIjoiS%2FZsbmVyIFN0ci4iLCJoYXVzbnVtbWVyIjoiMjIzIiwia2xzaWQiOjIwOTk5MDMwLCJoYXVzbnVtbWVyenVzYXR6IjoiIiwicGx6IjoiNDAyMjcifQ%3D%3D",
+            "target": "WEB_INTERNAL",
+            "trackingConfig": {
+              "category": "clickout",
+              "action": "relocation",
+              "label": "internet_checkspeed_criteria",
+              "event_name": "expose_clickout",
+              "event_product": "search",
+              "parameters": {
+                "event_parameter_1": "internet_checkspeed_criteria"
+              }
+            },
+            "additionalInfoForIcon": {
+              "title": "Warum diese Werbung?",
+              "text": "Für die Bereitstellung von Informationen zur Internet-Verfügbarkeit am Standort des Inserats arbeiten wir mit der Telekom Deutschland GmbH zusammen.",
+              "buttonText": "Weitere Informationen",
+              "buttonUrl": "https://www.immobilienscout24.de/anbieten/dsa-info/telekom.html"
+            },
+            "onClickTrackingTag": "INTERNET_SPEED_CHECK"
+          }
+        }
+      ]
+    },
+    {
+      "type": "ATTRIBUTE_LIST",
+      "title": "Kosten",
+      "attributes": [
+        {
+          "type": "TEXT",
+          "label": "Kaltmiete (zzgl. Nebenkosten):",
+          "text": "2.300 €"
+        },
+        {
+          "type": "TEXT",
+          "label": "Preis/m²:",
+          "text": "17,51 €/m²",
+          "additionalInfoText": "Kalkuliert von ImmoScout24"
+        },
+        {
+          "type": "TEXT",
+          "label": "Nebenkosten:",
+          "text": "480 €"
+        },
+        {
+          "type": "TEXT",
+          "label": "Heizkosten in Nebenkosten enthalten:",
+          "text": "Ja"
+        },
+        {
+          "type": "TEXT",
+          "label": "Gesamtmiete:",
+          "text": "2.780 €"
+        },
+        {
+          "type": "TEXT",
+          "label": "Kaution oder Genossenschaftsanteile:",
+          "text": "6.900"
+        }
+      ]
+    },
+    {
+      "type": "COST_CHECK",
+      "totalRent": 2780,
+      "expenses": [
+        {
+          "name": "Strom",
+          "grouping": "Strom",
+          "price": 52.5,
+          "providers": [
+            {
+              "id": "klarwatt-electricity",
+              "name": "KlarWatt Strom",
+              "chipName": "KlarWatt Energy by ImmoScout24",
+              "logo": "https://www.immobilienscout24.de/content/dam/is24/expose-snippets/KlarWatt-Logo-72x72.png",
+              "modalTitle": "KlarWatt Energy by ImmoScout24",
+              "modalContent": "/expose/content?fragment=/content/campaigns/is24/expose/cost-check/klarwatt-energy/_jcr_content/par.html",
+              "ctaText": "Jetzt berechnen",
+              "ctaLink": "https://rebrand.ly/KlarWatt-Strom",
+              "price": 39.38
+            },
+            {
+              "id": "lichtblick-electricity",
+              "name": "Strom",
+              "chipName": "LichtBlick",
+              "logo": "https://www.immobilienscout24.de/content/dam/is24/expose-snippets/lichtblick-logo.png",
+              "modalTitle": "100 % ÖkoStrom im neuen Zuhause",
+              "modalContent": "/expose/content?fragment=/content/campaigns/is24/expose/cost-check/lichtblick-electricity/_jcr_content/par.html",
+              "ctaText": "Jetzt berechnen",
+              "ctaLink": "https://rebrand.ly/Kostencheck-Lichtblick-Strom",
+              "selected": true,
+              "price": 58.69
+            }
+          ],
+          "order": 0
+        },
+        {
+          "name": "Internet",
+          "grouping": "Internet",
+          "price": 32.5,
+          "providers": [
+            {
+              "id": "telekom-internet",
+              "name": "Telekom Internet",
+              "chipName": "Telekom",
+              "logo": "https://www.immobilienscout24.de/content/dam/is24/expose-snippets/Telekom-Logo-72x72.png",
+              "price": 9.95,
+              "modalTitle": "Telekom Internet",
+              "modalContent": "/expose/content?fragment=/content/campaigns/is24/expose/cost-check/telekom-internet/_jcr_content/par.html",
+              "ctaText": "Jetzt informieren",
+              "ctaLink": "https://rebrand.ly/Kostencheck-Telekom-Internet",
+              "selected": true
+            }
+          ],
+          "order": 2
+        },
+        {
+          "name": "TV & Streaming",
+          "grouping": "TV & Streaming",
+          "price": 20,
+          "providers": [
+            {
+              "id": "telekom-streaming",
+              "name": "MagentaTV Smart",
+              "chipName": "Telekom",
+              "logo": "https://www.immobilienscout24.de/content/dam/is24/expose-snippets/Telekom-Logo-72x72.png",
+              "price": 11,
+              "modalTitle": "MagentaTV Smart",
+              "modalContent": "/expose/content?fragment=/content/campaigns/is24/expose/cost-check/telekom-streaming/_jcr_content/par.html",
+              "ctaText": "Jetzt informieren",
+              "ctaLink": "https://rebrand.ly/Kostencheck-Telekom-MagentaTV-Smart",
+              "popup": "<small>Für MagentaTV Neukunden in den ersten 6 Monaten 0 €.</small>",
+              "selected": true
+            }
+          ],
+          "order": 1
+        },
+        {
+          "name": "Hausratversicherung",
+          "grouping": "Versicherungen",
+          "price": 8
+        }
+      ]
+    },
+    {
+      "type": "PREMIUM_ADDITIONAL_INFO",
+      "title": "Plus Mitglieder wissen mehr!",
+      "isExposeBuy": false,
+      "chancenCheck": {
+        "enabled": false,
+        "title": "Plus Insights",
+        "publishedLabel": "Veröffentlicht",
+        "visitedLabel": "Aufrufe",
+        "shortlistedLabel": "Gemerkt",
+        "contactedLabel": "Kontaktiert"
+      },
+      "competitionAnalysis": {
+        "enabled": false,
+        "title": "Konkurrenzanalyse",
+        "plusUser": {
+          "label": "Plus-Mitglieder",
+          "count": null
+        },
+        "basicUser": {
+          "label": "Basic-Mitglieder",
+          "count": null
+        },
+        "totalUserCount": null,
+        "description": "inkl. 6 weiterer Diagramme mit Plus+",
+        "activationLabel": "mit Plus oder einzeln",
+        "quickCartUrl": "https://www.immobilienscout24.de/warenkorb/mieterplus?isMobileView=true&utm_campaign=chancen_check&utm_content=residential_expose_competitionanalysis_cta",
+        "trackingConfig": {
+          "event_name": "subscription_clickout",
+          "event_product": "expose",
+          "parameters": {
+            "event_parameter_1": "rent",
+            "event_parameter_2": "competition_analysis"
+          }
+        }
+      },
+      "quickCartButton": {
+        "enabled": true,
+        "label": "Jetzt Plus aktivieren",
+        "url": "https://www.immobilienscout24.de/warenkorb/mieterplus?isMobileView=true&utm_campaign=chancen_check&utm_content=residential_expose_plusinsights_cta",
+        "trackingConfig": {
+          "event_name": "subscription_clickout",
+          "event_product": "expose",
+          "parameters": {
+            "event_parameter_1": "rent",
+            "event_parameter_2": "plus_insights"
+          }
+        }
+      },
+      "visits": null,
+      "contactRequests": null,
+      "shortlistAddEvents": null,
+      "prospectiveCustomersCount": {
+        "basic": null,
+        "premium": null,
+        "total": null
+      },
+      "newExposeHoursThreshold": null,
+      "calculated": null,
+      "privateOffer": null,
+      "onlineSince": null
+    },
+    {
+      "type": "ATTRIBUTE_LIST",
+      "title": "Bausubstanz & Energieausweis",
+      "attributes": [
+        {
+          "type": "TEXT",
+          "label": "Baujahr:",
+          "text": "1950"
+        },
+        {
+          "type": "TEXT",
+          "label": "Letzte Modernisierung/ Sanierung:",
+          "text": "2026"
+        },
+        {
+          "type": "TEXT",
+          "label": "Objektzustand:",
+          "text": "Erstbezug nach Sanierung"
+        },
+        {
+          "type": "TEXT",
+          "label": "Qualität der Ausstattung:",
+          "text": "Gehoben"
+        },
+        {
+          "type": "TEXT",
+          "label": "Heizungsart:",
+          "text": "Fußbodenheizung"
+        },
+        {
+          "type": "TEXT",
+          "label": "Energieausweistyp:",
+          "text": "Bedarfsausweis"
+        },
+        {
+          "type": "TEXT",
+          "label": "Energieausweis:",
+          "text": "liegt vor"
+        },
+        {
+          "type": "TEXT",
+          "label": "Wesentliche Energieträger:",
+          "text": "Fernwärme"
+        },
+        {
+          "type": "TEXT",
+          "label": "Endenergiebedarf:",
+          "text": "83.2 kWh/(m²∙a)"
+        },
+        {
+          "type": "IMAGE",
+          "label": "Energieeffizienzklasse:",
+          "url": "https://is24-search-static.s3-eu-west-1.amazonaws.com/mobile-feed/energy-efficiency-labels/C.png"
+        },
+        {
+          "type": "TEXT",
+          "label": "Baujahr laut Energieausweis:",
+          "text": "2025",
+          "additionalInfoText": "Das Feld \"Baujahr laut Energieausweis\" entspricht den Werten im Energieausweis (z.B. Jahr des Bauantrags für das Gebäude/eines Gebäudeteils/relevante Modernisierungen). Das Feld \"Baujahr\" beschreibt das Jahr, in dem die Immobilie erstmals bezugsfertig war."
+        }
+      ]
+    },
+    {
+      "type": "AD",
+      "ad": {
+        "id": "/4467/IS24_APP_DE/app_iOS_iPhone_expose_contentbanner_1"
+      }
+    },
+    {
+      "type": "PROJECT_EXPOSE_LIST",
+      "title": "Weitere Wohneinheiten in diesem Projekt",
+      "items": [
+        {
+          "id": "168961770",
+          "attributes": [
+            "1.050 €",
+            "57,19 m²",
+            "2 Zi."
+          ],
+          "imageUrl": "https://pictures.immobilienscout24.de/listings/cc19f5fe-9939-4e0d-ab08-5204461b849f-2051538401.png/ORIG/legacy_thumbnail/%WIDTH%x%HEIGHT%/format/jpg/quality/50"
+        },
+        {
+          "id": "168961143",
+          "attributes": [
+            "1.000 €",
+            "55,46 m²",
+            "2 Zi."
+          ],
+          "imageUrl": "https://pictures.immobilienscout24.de/listings/0d7314a0-782b-44db-8091-f3955660ec29-2051535160.png/ORIG/legacy_thumbnail/%WIDTH%x%HEIGHT%/format/jpg/quality/50"
+        }
+      ],
+      "reference": {
+        "type": "URL_LINK",
+        "target": "INTERNAL",
+        "label": "Mehr Details zu diesem Neubauprojekt",
+        "url": "is24://project/150194"
+      }
+    },
+    {
+      "type": "TEXT_AREA",
+      "title": "Objektbeschreibung",
+      "collapseAfterLines": 5,
+      "text": "Ein Loft mit eigenem Garten – mitten in Düsseldorf.\n\nErreichbar über einen repräsentativen Durchgang im Vorderhaus, liegt dieses Loft im ruhigen, begrünten Gartenhaus der Kölner Straße 223 – zentral in der Stadt und doch abgeschirmt vom Straßenlärm. 131,37 m² Wohnfläche über zwei Ebenen, dazu 57,66 m² Nutzfläche, ein eigener Garten mit privater Terrasse. Erstbezug nach Sanierung 2026: Das Gebäude von 1950 wurde vollständig saniert, diese Wohnung war noch nie bewohnt. Sie ziehen als Erste ein.\n\nIm Erdgeschoss gliedert die freistehende Spindeltreppe aus verzinktem Stahl den Grundriss: auf der einen Seite die Wohnküche mit Einbauküche, auf der anderen der großzügige Wohn- und Arbeitsbereich unter der sichtbaren Stahlträgerdecke – der Industrie-Charakter, der dem Loft seinen Namen gibt. Dieser Bereich öffnet sich ebenerdig zum eigenen Garten und zur Terrasse.\n\nÜber die Treppe erreichen Sie das Obergeschoss: auf der einen Seite das Badezimmer mit Badewanne und Dusche, auf der anderen ein großzügiger Raum mit Schlafbereich und separater Ankleide.\n\nDie Ausstattung ist gehoben und unaufgeregt: Fußbodenheizung sorgt für warme Böden ohne sichtbare Heizkörper, versorgt über Fernwärme (Heizkosten in den Nebenkosten enthalten).\n\nStatt vieler kleiner Zimmer bietet dieses Loft großzügige, offen geschnittene Bereiche über zwei Ebenen. Ein Stellplatz gehört nicht zur Wohnung – dafür ist die U-Bahn in der Nähe und die Innenstadt schnell erreicht."
+    },
+    {
+      "type": "TEXT_AREA",
+      "title": "Ausstattung",
+      "collapseAfterLines": 5,
+      "text": "Dieses Loft (ca. 131 m² Wohnfläche, Wohnen über EG + OG):\n• Offener Wohn-/Arbeitsbereich mit Einbauküche, historische Stahlträgerdecke sichtbar\n• Freistehende Spindeltreppe aus verzinktem Stahl über alle Ebenen, farblich gestaltetes Treppenhaus\n• Schlafbereich mit separater Ankleide (Obergeschoss)\n• Großes Bad mit Dusche und Badewanne\n• Fußbodenheizung\n• Eigener Garten und eigene Terrasse (zusätzlich zur Wohnfläche)\n• Untergeschoss: zwei eigene Kellerräume \n• Authentisches Detail: historischer Kran im Innenhof\n\nModernisierung 2026 (gesamtes Haus):\n• Erstbezug nach Komplettmodernisierung\n• KfW-Effizienzhaus 85, Fernwärme, EEK C\n• Neue Elektrik, Netzwerk-/TV-Verkabelung\n• Gegensprechanlage, Rauchmelder, Schließanlage\n• Begrünter Innenhof, Fahrradstellplätze"
+    },
+    {
+      "type": "TEXT_AREA",
+      "title": "Lage",
+      "collapseAfterLines": 5,
+      "text": "Zentral und sehr gut angebunden: Das Wohnhaus liegt an der Kölner Straße, gegenüber dem Internationalen Handelszentrum (IHZ) mit dem begrünten IHZ-Park. Hauptbahnhof, Innenstadt, Universität und Flughafen sind schnell erreichbar.\n\nDirekt am Haus (1–2 Gehminuten):\n• U-Bahn Handelszentrum/Moskauer Straße (U70, U75, U77)\n• U-Bahn Oberbilker Markt/Warschauer Straße (U76, U79)\n• Tram 706 · Bus 732/736\n\nSchnell erreichbar:\n• Hauptbahnhof: ca. 5 Gehmin / 1 U-Bahn-Station\n• Innenstadt: wenige U-Bahn-Minuten · Universität (HHU) umsteigefrei (U79)\n• Flughafen: ca. 25–30 Min (ab Hbf)\n\nFreizeit & Versorgung:\n• Begrünter IHZ-Park direkt gegenüber, Volksgarten in der Nähe\n• Supermarkt, Drogerie, Bäcker, Apotheke in wenigen Gehminuten\n• Cafés, Restaurants & Szeneviertel (Unterbilk/Lorettostraße, Flingern) schnell erreichbar\n• Kultur, Shopping und Innenstadt schnell mit der U-Bahn"
+    },
+    {
+      "type": "TEXT_AREA",
+      "title": "Sonstiges",
+      "collapseAfterLines": 5,
+      "text": "Flächenhinweis: In der Wohnfläche (ca. 131 m²) ist die Terrasse nur anteilig (25 %) berücksichtigt; die übrige Terrassenfläche und der Garten sind der Wohnung zugeordnet, zählen aber nicht zur Wohnfläche. Die beiden Kellerräume im Untergeschoss (Lagerfläche) zählen ebenfalls nicht zur Wohnfläche.\n\nHinweis: Die Innenaufnahmen sind beispielhaft digital möbliert. Bitte nennen Sie uns bei Ihrer Anfrage kurz: Anzahl der einziehenden Personen, berufliche Situation, gewünschter Einzugstermin und ggf. Haustiere. Der Mietbeginn ist individuell vereinbar. Vermietung direkt vom Eigentümer, provisionsfrei."
+    },
+    {
+      "type": "REFERENCE_LIST",
+      "title": "Services passend zur Wohnung",
+      "references": [
+        {
+          "type": "BUTTON",
+          "label": "SCHUFA-BonitätsCheck",
+          "url": "https://bonitaetscheck.immobilienscout24.de/?utm_medium=app&utm_source=ios&utm_campaign=solvency_check&utm_content=residential_expose_services",
+          "target": "WEB_INTERNAL",
+          "trackingConfig": {
+            "category": "expose",
+            "action": "consumerservices",
+            "label": "solvencycheck_services",
+            "event_name": "productintegration_click",
+            "event_product": "search",
+            "parameters": {
+              "event_parameter_1": "solvencycheck_services"
+            }
+          }
+        },
+        {
+          "type": "BUTTON",
+          "label": "Umzugsfirma finden",
+          "url": "is24://retargetRelocation?pag_source=expose_services&floor=0&street=K%C3%B6lner%20Stra%C3%9Fe&houseNumber=223&postcode=40227&city=D%C3%BCsseldorf",
+          "target": "INTERNAL",
+          "trackingConfig": {
+            "category": "expose",
+            "action": "consumerservices",
+            "label": "relocation_services",
+            "event_name": "productintegration_click",
+            "event_product": "search",
+            "parameters": {
+              "event_parameter_1": "relocation_services"
+            }
+          }
+        },
+        {
+          "type": "BUTTON",
+          "label": "Mein Eigentümerbereich",
+          "url": "https://www.immobilienscout24.de/meinkonto/meine-immobilien?utm_medium=app&utm_source=ios&utm_campaign=residential_atlas_myproperty&utm_content=residential_expose_service&street=K%C3%B6lner%20Stra%C3%9Fe&houseNumber=223&zipcode=40227&city=D%C3%BCsseldorf",
+          "target": "WEB_INTERNAL",
+          "trackingConfig": {
+            "category": "expose",
+            "action": "further_links",
+            "label": "myproperty_services",
+            "event_name": "productintegration_click",
+            "event_product": "search",
+            "parameters": {
+              "event_parameter_1": "myproperty_services"
+            }
+          }
+        },
+        {
+          "type": "BUTTON",
+          "label": "Stromverbrauch berechnen",
+          "url": "https://www.immobilienscout24.de/umzug/service/electricity-calculator-mobile.html?zipCode=40227&squareMeters=131.37&lang=de",
+          "target": "WEB_INTERNAL",
+          "trackingConfig": {
+            "category": "clickout",
+            "action": "electricity",
+            "label": "energy_services",
+            "event_name": "productintegration_click",
+            "event_product": "search",
+            "parameters": {
+              "event_parameter_1": "energy_services"
+            }
+          }
+        },
+        {
+          "type": "BUTTON",
+          "label": "Internet umziehen",
+          "url": "https://rebrand.ly/service-android-app",
+          "target": "WEB_INTERNAL",
+          "trackingConfig": {
+            "category": "clickout",
+            "action": "internet",
+            "label": "internet_services",
+            "event_name": "expose_clickout",
+            "event_product": "search",
+            "parameters": {
+              "event_parameter_1": "internet_services"
+            }
+          },
+          "additionalInfoForIcon": {
+            "title": "Warum diese Werbung?",
+            "text": "Für die Bereitstellung von Informationen zur Internet-Verfügbarkeit am Standort des Inserats arbeiten wir mit der Telekom Deutschland GmbH zusammen.",
+            "buttonText": "Weitere Informationen",
+            "buttonUrl": "https://www.immobilienscout24.de/anbieten/dsa-info/telekom.html",
+            "iconUrl": "https://www.immobilienscout24.de/content/dam/is24/expose-snippets/services/powered-by-telekom-new.png"
+          }
+        }
+      ]
+    },
+    {
+      "type": "AVAILABLE_SERVICES",
+      "services": [
+        {
+          "id": "home-entertainment",
+          "title": "MagentaTV MegaStream",
+          "chipName": "Home Entertainment",
+          "contentUrl": "/expose/content?fragment=/content/campaigns/is24/expose/available-services/home-entertainment/_jcr_content/par.html",
+          "dsaLogo": "https://www.immobilienscout24.de/content/dam/is24/expose-snippets/Telekom-Logo-Transparent-72x72.png",
+          "dsaLink": "https://www.immobilienscout24.de/anbieten/dsa-info/telekom-services.html",
+          "company": "Telekom Deutschland GmbH",
+          "ctaLink": "https://rebrand.ly/services-miete-web",
+          "ctaText": "Hier informieren"
+        },
+        {
+          "id": "electricity-calculator-mobile",
+          "chipName": "Stromverbrauch",
+          "contentUrl": "https://www.immobilienscout24.de/content/campaigns/is24/expose/available-services/electricity-calculator-mobile.html?zipCode=40227&squareMeters=131.37&lang=de"
+        },
+        {
+          "id": "lotto24",
+          "chipName": "Verlosung",
+          "contentUrl": "/expose/content?fragment=/content/campaigns/is24/expose/available-services/lotto24/_jcr_content/par.html",
+          "dsaLogo": "https://www.immobilienscout24.de/content/dam/is24/dsa-info/traumhausverlosung.png",
+          "dsaLink": "https://www.immobilienscout24.de/anbieten/dsa-info/traumhausverlosung.html",
+          "company": "Lotto24 AG",
+          "ctaText": "5 € Rabatt sichern",
+          "ctaLink": "https://rebrand.ly/Verfügbare-Services_Lott24"
+        },
+        {
+          "id": "gas-calculator-mobile",
+          "chipName": "Gasverbrauch",
+          "contentUrl": "https://www.immobilienscout24.de/content/campaigns/is24/expose/available-services/gas-calculator-mobile.html?zipCode=40227&squareMeters=131.37&lang=de"
+        },
+        {
+          "id": "schufa",
+          "chipName": "SCHUFA",
+          "contentUrl": "/expose/content?fragment=/content/campaigns/is24/expose/available-services/schufa/_jcr_content/par.html",
+          "ctaText": "Zum SCHUFA-BonitätsCheck",
+          "ctaLink": "https://bonitaetscheck.immobilienscout24.de/?cmp_id=10-053023&cmp_name=solvency_check&cmp_position=residential_expose&cmp_creative=services"
+        },
+        {
+          "id": "rent-protection-and-security",
+          "chipName": "Mietschutz & Sicherheit",
+          "contentListItems": [
+            {
+              "title": "Wohnen+ - MieterSchutz von der Nr. 1",
+              "subline": "Absicherung, die Wohnen leicht macht",
+              "link": "https://www.immobilienscout24.de/lp/wohnen-plus.html?cmp_id=10-053024&cmp_name=living_plus&cmp_position=residential_expose&cmp_creative=services"
+            },
+            {
+              "title": "Mieten ohne Kaution",
+              "link": "https://rebrand.ly/depositdirect"
+            }
+          ]
+        },
+        {
+          "id": "relocation-and-organization-mobile",
+          "chipName": "Umzug & Organisation",
+          "contentListItems": [
+            {
+              "title": "Kostenlos Umzugsunternehmen finden",
+              "subline": "Finde passende Umzugsprofis und vergleiche Angebote.",
+              "link": "is24://retargetRelocation?pag_source=expose_criteria&floor=0&street=K%C3%B6lner%20Stra%C3%9Fe&houseNumber=223&postcode=40227&city=D%C3%BCsseldorf"
+            },
+            {
+              "title": "Wohnung kündigen",
+              "subline": "Gratis Kündigungsvorlage erstellen und direkt herunterladen.",
+              "link": "https://www.immobilienscout24.de/umzug/ratgeber/vorlagen/musterbrief-kuendigung/brief-erstellen.html?cmp_id=10-053022&cmp_name=cancelation_letter&cmp_position=residential_expose&cmp_creative=services"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "AGENTS_INFO",
+      "title": "Anbieter Informationen",
+      "company": "Oliver Mai - Immobilienverwaltung und Projektentwicklung",
+      "name": "Herr Oliver Mai",
+      "agentProfileUrl": "https://www.immobilienscout24.de/anbieter/oliver-mai-immobilienverwaltung-und-projektentwicklung/a35f593d9d662cdd46c203f",
+      "verifiedBy": [
+        {
+          "id": "TNS_REALTOR_BADGE",
+          "label": "Identität verifiziert",
+          "tooltip": "Deine Sicherheit liegt uns am Herzen. Diese:r Anbietende wurde daher erfolgreich verifiziert und ist zusätzlich durch eine Mehrfaktor-Authentifizierung geschützt.",
+          "reference": {
+            "label": "Mehr Infos",
+            "url": "https://sicherheit.immobilienscout24.de/verifizierte-anbietende.html",
+            "type": "URL_LINK",
+            "target": "WEB_INTERNAL"
+          }
+        }
+      ],
+      "dsaSelfDeclaration": {
+        "text": "Der:Die Anbietende hat sich gegen&uuml;ber ImmoScout24 verpflichtet, nur Produkte und Dienstleistungen anzubieten, die den geltenden Vorschriften des Unionsrechts entsprechen."
+      },
+      "portraitUrl": "https://pictures.immobilienscout24.de/usercontent/5dd41977-d796-4fb8-b236-247c4df87c22.JPG/ORIG/resize/%WIDTH%x%HEIGHT%%3E/format/webp/quality/80",
+      "address": "Lehrter Straße 23A\n10557 Berlin",
+      "references": [
+        {
+          "label": "Impressum des Anbieters",
+          "url": "is24://imprint?text=Oliver%20Mai%20-%20Immobilienverwaltung%20und%20Projektentwicklung%0ALehrter%20Str.%2023A%0A10557%20Berlin%0A0176%2010270360%0Ak223%40o-mai.de%0A%0AUSt-ID%3A%20DE416509084%0A",
+          "type": "URL_LINK",
+          "target": "INTERNAL"
+        }
+      ],
+      "immoPartnerBadge": {
+        "badgeUrl": "https://pro-badge-images-bucket.s3.eu-west-1.amazonaws.com/standard/bronze_2026.png",
+        "linkUrl": "https://www.immobilienscout24.de/anbieten/gewerbliche-anbieter/lp/profis-leicht-erkennen.html"
+      }
+    },
+    {
+      "type": "CONTACT",
+      "callButtonLabel": "Anruf",
+      "callButtonState": "active",
+      "mailButtonLabel": "Nachricht",
+      "mailButtonState": "active",
+      "messengerButtonLabel": "Nachrichten",
+      "premiumProfileRequiredForContacting": "false",
+      "phoneNumbers": [
+        {
+          "type": "TEXT",
+          "label": "Festnetznummer",
+          "text": "+49 176 10270360"
+        }
+      ],
+      "contactData": {
+        "agent": {
+          "name": "Herr Oliver Mai",
+          "company": "Oliver Mai - Immobilienverwaltung und Projektentwicklung",
+          "rating": {},
+          "verifiedBy": [
+            {
+              "id": "TNS_REALTOR_BADGE",
+              "label": "Identität verifiziert",
+              "tooltip": "Deine Sicherheit liegt uns am Herzen. Diese:r Anbietende wurde daher erfolgreich verifiziert und ist zusätzlich durch eine Mehrfaktor-Authentifizierung geschützt.",
+              "reference": {
+                "label": "Mehr Infos",
+                "url": "https://sicherheit.immobilienscout24.de/verifizierte-anbietende.html",
+                "type": "URL_LINK",
+                "target": "WEB_INTERNAL"
+              }
+            }
+          ]
+        },
+        "realEstateProjectId": 150194,
+        "realEstateType": "apartmentrent",
+        "formFieldConfig": {
+          "moveInDateField": "OPTIONAL",
+          "petsInHouseholdField": "OPTIONAL",
+          "numberOfPersonsField": "OPTIONAL",
+          "employmentRelationshipField": "OPTIONAL",
+          "incomeField": "OPTIONAL",
+          "firstnameField": "MANDATORY",
+          "lastnameField": "MANDATORY",
+          "phoneNumberField": "OPTIONAL",
+          "emailAddressField": "MANDATORY",
+          "addressField": "MANDATORY",
+          "applicationPackageCompletedField": "OPTIONAL",
+          "salutationField": "OPTIONAL",
+          "messageField": "OPTIONAL"
+        },
+        "isExposeBuy": false,
+        "isTenantNetwork": false
+      }
+    },
+    {
+      "type": "AGENTS_CONTACT",
+      "address": "Lehrter Straße 23A\n10557 Berlin",
+      "references": [
+        {
+          "label": "Impressum des Anbieters",
+          "url": "is24://imprint?text=Oliver%20Mai%20-%20Immobilienverwaltung%20und%20Projektentwicklung%0ALehrter%20Str.%2023A%0A10557%20Berlin%0A0176%2010270360%0Ak223%40o-mai.de%0A%0AUSt-ID%3A%20DE416509084%0A",
+          "type": "URL_LINK",
+          "target": "INTERNAL"
+        }
+      ]
+    },
+    {
+      "type": "OBJECT_INFO",
+      "text": "Scout-ID: 168963883 | Objekt-Nr.: B.00.01"
+    },
+    {
+      "type": "AD",
+      "ad": {
+        "id": "/4467/IS24_APP_DE/app_iOS_iPhone_expose"
+      }
+    },
+    {
+      "type": "FRAUD_REPORT",
+      "text": "Gibt es etwas zu beanstanden?",
+      "reference": {
+        "label": "Angebot melden!",
+        "url": "https://angebot-melden.immobilienscout24.de/report?realEstateId=168963883&publicationState=live",
+        "type": "URL_LINK",
+        "target": "WEB_INTERNAL"
+      }
+    }
+  ],
+  "contact": {
+    "type": "CONTACT",
+    "callButtonLabel": "Anruf",
+    "callButtonState": "active",
+    "mailButtonLabel": "Nachricht",
+    "mailButtonState": "active",
+    "messengerButtonLabel": "Nachrichten",
+    "premiumProfileRequiredForContacting": "false",
+    "phoneNumbers": [
+      {
+        "type": "TEXT",
+        "label": "Festnetznummer",
+        "text": "+49 176 10270360"
+      }
+    ],
+    "contactData": {
+      "agent": {
+        "name": "Herr Oliver Mai",
+        "company": "Oliver Mai - Immobilienverwaltung und Projektentwicklung",
+        "rating": {},
+        "verifiedBy": [
+          {
+            "id": "TNS_REALTOR_BADGE",
+            "label": "Identität verifiziert",
+            "tooltip": "Deine Sicherheit liegt uns am Herzen. Diese:r Anbietende wurde daher erfolgreich verifiziert und ist zusätzlich durch eine Mehrfaktor-Authentifizierung geschützt.",
+            "reference": {
+              "label": "Mehr Infos",
+              "url": "https://sicherheit.immobilienscout24.de/verifizierte-anbietende.html",
+              "type": "URL_LINK",
+              "target": "WEB_INTERNAL"
+            }
+          }
+        ]
+      },
+      "realEstateProjectId": 150194,
+      "realEstateType": "apartmentrent",
+      "formFieldConfig": {
+        "moveInDateField": "OPTIONAL",
+        "petsInHouseholdField": "OPTIONAL",
+        "numberOfPersonsField": "OPTIONAL",
+        "employmentRelationshipField": "OPTIONAL",
+        "incomeField": "OPTIONAL",
+        "firstnameField": "MANDATORY",
+        "lastnameField": "MANDATORY",
+        "phoneNumberField": "OPTIONAL",
+        "emailAddressField": "MANDATORY",
+        "addressField": "MANDATORY",
+        "applicationPackageCompletedField": "OPTIONAL",
+        "salutationField": "OPTIONAL",
+        "messageField": "OPTIONAL"
+      },
+      "isExposeBuy": false,
+      "isTenantNetwork": false
+    }
+  },
+  "tracking": {
+    "realEstateType": "APARTMENT_RENT",
+    "parameters": {
+      "obj_commissionsettings": "flow:0",
+      "obj_ityp": "apartment_rent",
+      "obj_listFirstStatus": "false",
+      "obj_nbp": "true",
+      "obj_privateOffer": "false",
+      "obj_scoutid": "168963883",
+      "obj_TenantNetwork": "false",
+      "obj_draftListing": "false",
+      "ga_cd_application_requirements": "profile0",
+      "ga_cd_customer_group": "others",
+      "ga_cd_cxp_interactivepic": "false",
+      "obj_totalRent": "2780",
+      "obj_baseRent": "2300",
+      "ga_cd_via": "schaufenster",
+      "geo_land": "deutschland",
+      "geo_bln": "nordrhein_westfalen",
+      "geo_krs": "düsseldorf",
+      "obj_ExclusiveExpose": "true"
+    }
+  },
+  "adTargetingParameters": {
+    "obj_regio1": "Nordrhein_Westfalen",
+    "obj_serviceCharge": "480",
+    "obj_heatingType": "floor_heating",
+    "obj_telekomInternetUrlAddition": "eyJvcnQiOiJE%2FHNzZWxkb3JmIiwib3J0c3RlaWwiOiIiLCJzdHJhc3NlIjoiS%2FZsbmVyIFN0ci4iLCJoYXVzbnVtbWVyIjoiMjIzIiwia2xzaWQiOjIwOTk5MDMwLCJoYXVzbnVtbWVyenVzYXR6IjoiIiwicGx6IjoiNDAyMjcifQ%3D%3D",
+    "obj_cId": "21079028",
+    "obj_newlyConst": "n",
+    "obj_balcony": "y",
+    "obj_picturecount": "16",
+    "obj_totalRent": "2780",
+    "obj_yearConstructed": "1950",
+    "geo_ot": "oberbilk",
+    "obj_privateOffer": "false",
+    "obj_project_id": "150194",
+    "obj_scoutId": "168963883",
+    "obj_firingTypes": "district_heating",
+    "obj_hasKitchen": "y",
+    "obj_ExclusiveExpose": "true",
+    "geo_bln": "nordrhein_westfalen",
+    "obj_cellar": "y",
+    "obj_yearConstructedRange": "1",
+    "obj_baseRent": "2300",
+    "obj_telekomInternetUrlBase": "https://www.telekom.de/festnetz/tarife-und-optionen/internet-dsl",
+    "obj_houseNumber": "223",
+    "obj_energyType": "energy_required",
+    "obj_livingSpace": "131.37",
+    "geo_krs": "düsseldorf",
+    "obj_zipCode": "40227",
+    "obj_condition": "first_time_use_after_refurbishment",
+    "obj_interiorQual": "sophisticated",
+    "obj_highDemand": "false",
+    "obj_petsAllowed": "negotiable",
+    "obj_energyEfficiencyClass": "C",
+    "obj_street": "K&ouml;lner Stra&szlig;e",
+    "obj_lift": "n",
+    "obj_depositLink": "y",
+    "obj_baseRentRange": "9",
+    "obj_streetPlain": "Kölner_Straße",
+    "obj_typeOfFlat": "loft",
+    "obj_noRooms": "2",
+    "obj_assistedLiving": "n",
+    "obj_thermalChar": "83.2",
+    "obj_lastRefurbish": "2026",
+    "obj_groupnumber": "1",
+    "obj_ityp": "0,active",
+    "goog_abt": "0",
+    "obj_telekomInternetAvailable": "true",
+    "geo_land": "deutschland",
+    "obj_immotype": "wohnung_miete",
+    "obj_privateOfferInvestmentCheck": "false",
+    "obj_contactFormInputFieldCount": "18",
+    "obj_floor": "0",
+    "obj_nbp": "true",
+    "obj_telekomInternetSpeed": "175 MBit/s",
+    "obj_cwId": "002.01020982552",
+    "obj_numberOfFloors": "2",
+    "geo_bg": "stadtbezirk_3",
+    "obj_noRoomsRange": "2",
+    "obj_garden": "y",
+    "evt_count_pm_sig": "showqualicontactform",
+    "obj_regio4": "Oberbilk",
+    "obj_barrierFree": "n",
+    "obj_international": "n",
+    "obj_regio3": "Stadtbezirk_3",
+    "obj_objectnumber": "B.00.01",
+    "obj_livingSpaceRange": "6",
+    "obj_regio2": "Düsseldorf"
+  }
+}

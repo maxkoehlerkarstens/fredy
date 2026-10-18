@@ -1,0 +1,41 @@
+@import '../../tokens.less';
+
+.page-heading {
+  margin-bottom: @space-6;
+  margin-top: 0;
+
+  &__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  &__titleRow {
+    display: flex;
+    align-items: center;
+    gap: @space-3;
+    flex-wrap: wrap;
+  }
+
+  &__title {
+    font-size: @text-lg !important;
+    font-weight: 700 !important;
+    color: @color-text !important;
+    margin: 0 !important;
+    line-height: 1.2;
+  }
+
+  &__subtitle {
+    margin: 4px 0 0;
+    color: @color-muted;
+    font-size: @text-sm;
+    line-height: 1.5;
+  }
+
+  &__line {
+    height: 1px;
+    background: linear-gradient(90deg, rgb(@color-accent-rgb / 50%) 0%, rgb(@color-accent-rgb / 0%) 100%);
+    width: 100%;
+  }
+}

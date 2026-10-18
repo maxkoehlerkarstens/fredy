@@ -3,8 +3,7 @@
  * Licensed under Apache-2.0 with Commons Clause and Attribution/Naming Clause
  */
 
-import { expect } from 'chai';
-import esmock from 'esmock';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // We will fully mock fs, crypto, SqliteConnection, and dynamic import of migration modules
 
@@ -85,22 +84,18 @@ describe('db/migrations/migrate.js - runMigrations', () => {
       },
     };
 
-    // esmock with dependency replacements
     const path = await import('node:path');
     const ROOT = path.resolve('.');
     const sqlPath = path.join(ROOT, 'lib', 'services', 'storage', 'SqliteConnection.js');
     const loggerPath = path.join(ROOT, 'lib', 'services', 'logger.js');
-    const mod = await esmock(
-      '../../../db/migrations/migrate.js',
-      {},
-      {
-        fs: fsMock,
-        crypto: cryptoMock,
-        [sqlPath]: sqlMock,
-        [loggerPath]: loggerMock,
-      },
-    );
 
+    vi.resetModules();
+    vi.doMock('fs', () => ({ default: fsMock, ...fsMock }));
+    vi.doMock('crypto', () => ({ default: cryptoMock, ...cryptoMock }));
+    vi.doMock(sqlPath, () => ({ default: sqlMock }));
+    vi.doMock(loggerPath, () => ({ default: loggerMock }));
+
+    const mod = await import('../../../lib/services/storage/migrations/migrate.js');
     runMigrations = mod.runMigrations;
 
     // remember original exitCode to restore later
@@ -114,9 +109,9 @@ describe('db/migrations/migrate.js - runMigrations', () => {
 
   it('logs and returns when no migration files are found', async () => {
     await runMigrations();
-    expect(calls.logs.info.some((a) => String(a[0]).includes('No migration files'))).to.equal(true);
-    expect(calls.sql.getConnection).to.equal(0);
-    expect(calls.sql.optimize).to.equal(0);
+    expect(calls.logs.info.some((a) => String(a[0]).includes('No migration files'))).toBe(true);
+    expect(calls.sql.getConnection).toBe(0);
+    expect(calls.sql.optimize).toBe(0);
   });
 
   it('applies a single new migration inside a transaction and records it', async () => {
@@ -161,14 +156,9 @@ describe('db/migrations/migrate.js - runMigrations', () => {
     // The migration module: exports up(db)
     const migrationModule = {
       up: (db) => {
-        db.exec && db.exec('CREATE TABLE schema_migrations(name TEXT)');
+        db.exec?.('CREATE TABLE schema_migrations(name TEXT)');
       },
     };
-
-    // We need to intercept dynamic import by esmock: provide a stub for import(url)
-    // esmock supports mocking via a virtual module using URL matching, but simpler approach:
-    // place the file path that migrate.js will compute and make Node import resolve to our stub
-    // We simulate by mocking url.pathToFileURL is still used, but dynamic import will be handled by esmock when we map the computed path.
 
     const path = await import('node:path');
     const ROOT = path.resolve('.');
@@ -178,26 +168,22 @@ describe('db/migrations/migrate.js - runMigrations', () => {
     // Use global importer hook to bypass dynamic import
     globalThis.__TEST_MIGRATE_IMPORT__ = async () => migrationModule;
 
-    const mod = await esmock(
-      '../../../db/migrations/migrate.js',
-      {},
-      {
-        fs: fsMock,
-        crypto: cryptoMock,
-        [sqlPath]: sqlMock,
-        [loggerPath]: loggerMock,
-      },
-    );
+    vi.resetModules();
+    vi.doMock('fs', () => ({ default: fsMock, ...fsMock }));
+    vi.doMock('crypto', () => ({ default: cryptoMock, ...cryptoMock }));
+    vi.doMock(sqlPath, () => ({ default: sqlMock }));
+    vi.doMock(loggerPath, () => ({ default: loggerMock }));
 
+    const mod = await import('../../../lib/services/storage/migrations/migrate.js');
     runMigrations = mod.runMigrations;
 
     await runMigrations();
 
     // Should have started a transaction and inserted into schema_migrations
-    expect(calls.sql.withTransaction.length).to.equal(1);
+    expect(calls.sql.withTransaction.length).toBe(1);
     const inserted = calls.sql.execute.find((e) => String(e.sql).includes('INSERT INTO schema_migrations'));
-    expect(!!inserted).to.equal(true);
-    expect(calls.sql.optimize).to.equal(1);
+    expect(!!inserted).toBe(true);
+    expect(calls.sql.optimize).toBe(1);
   });
 
   it('skips already executed migration with same checksum', async () => {
@@ -242,27 +228,23 @@ describe('db/migrations/migrate.js - runMigrations', () => {
 
     globalThis.__TEST_MIGRATE_IMPORT__ = async () => ({ up: () => {} });
 
-    const mod = await esmock(
-      '../../../db/migrations/migrate.js',
-      {},
-      {
-        fs: fsMock,
-        crypto: cryptoMock,
-        [sqlPath]: sqlMock,
-        [loggerPath]: loggerMock,
-      },
-    );
+    vi.resetModules();
+    vi.doMock('fs', () => ({ default: fsMock, ...fsMock }));
+    vi.doMock('crypto', () => ({ default: cryptoMock, ...cryptoMock }));
+    vi.doMock(sqlPath, () => ({ default: sqlMock }));
+    vi.doMock(loggerPath, () => ({ default: loggerMock }));
 
+    const mod = await import('../../../lib/services/storage/migrations/migrate.js');
     runMigrations = mod.runMigrations;
 
     await runMigrations();
 
     // Should not run transaction because it's skipped
-    expect(calls.sql.withTransaction.length).to.equal(0);
-    expect(calls.sql.optimize).to.equal(1);
+    expect(calls.sql.withTransaction.length).toBe(0);
+    expect(calls.sql.optimize).toBe(1);
   });
 
-  it('aborts with exitCode=1 when a migration throws, without applying insert', async () => {
+  it('throws when a migration throws, without applying insert', async () => {
     const fsMock = {
       existsSync: () => true,
       mkdirSync: () => {},
@@ -311,24 +293,28 @@ describe('db/migrations/migrate.js - runMigrations', () => {
     const sqlPath = path.join(ROOT, 'lib', 'services', 'storage', 'SqliteConnection.js');
     const loggerPath = path.join(ROOT, 'lib', 'services', 'logger.js');
 
-    const mod = await esmock(
-      '../../../lib/services/storage/migrations/migrate.js',
-      {},
-      {
-        fs: fsMock,
-        crypto: cryptoMock,
-        [sqlPath]: sqlMock,
-        [loggerPath]: loggerMock,
-      },
-    );
+    vi.resetModules();
+    vi.doMock('fs', () => ({ default: fsMock, ...fsMock }));
+    vi.doMock('crypto', () => ({ default: cryptoMock, ...cryptoMock }));
+    vi.doMock(sqlPath, () => ({ default: sqlMock }));
+    vi.doMock(loggerPath, () => ({ default: loggerMock }));
 
+    const mod = await import('../../../lib/services/storage/migrations/migrate.js');
     runMigrations = mod.runMigrations;
 
-    await runMigrations();
+    // Rejecting is what stops startup. Setting process.exitCode used to be the only signal, but
+    // the caller goes on to boot the API and the schedulers, so the exit code never took effect
+    // and Fredy served traffic against a half-migrated schema.
+    await expect(runMigrations()).rejects.toThrow(/Migration failed and was rolled back: 1\.bad\.js/);
 
-    expect(process.exitCode).to.equal(1);
+    // The original failure has to survive, otherwise the log says what broke but not why.
+    await expect(runMigrations()).rejects.toMatchObject({ cause: expect.objectContaining({ message: 'boom' }) });
+
     // No insert into schema_migrations should be recorded since transaction failed
     const inserted = calls.sql.execute.find((e) => String(e.sql).includes('INSERT INTO schema_migrations'));
-    expect(inserted).to.equal(undefined);
+    expect(inserted).toBe(undefined);
+
+    // And it must not quietly mark the process as failed instead of surfacing the error.
+    expect(process.exitCode).toBe(prevExitCode);
   });
 });

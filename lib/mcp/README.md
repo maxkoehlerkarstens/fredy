@@ -1,4 +1,4 @@
-# Fredy MCP Server
+ # Fredy MCP Server
 
 The Fredy MCP Server exposes your real estate jobs and listings data to LLM clients. It supports two transports:
 
@@ -15,6 +15,18 @@ MCP tokens are displayed in the **User Management** list (Admin → Users). Each
 
 > **Important:** MCP tokens never expire. They are permanent secrets tied to each user account. If a token is compromised, you must change the token! If you chose to use a token from an admin account, the LLM can query information from ALL jobs/listings. 
 
+### OAuth for remote clients (Claude.ai, ChatGPT)
+
+Remote connectors cannot be handed a static token, so the HTTP transport also speaks OAuth 2.1 with dynamic client registration (PKCE S256, tokens bound to `<baseUrl>/api/mcp` per RFC 8707). Requirements and behaviour:
+
+- `baseUrl` must be set to the public HTTPS URL of your Fredy instance. Tokens are bound to that URL, not to whatever `Host` header a request carries.
+- Add `<baseUrl>/api/mcp` as a remote MCP server in the client; it discovers `/.well-known/oauth-protected-resource/api/mcp`, registers itself at `/api/oauth/register`, and sends you to Fredy to sign in and approve access.
+- Access tokens live for one hour and are refreshed automatically; refresh tokens rotate on every use and a replayed refresh token revokes the whole grant.
+- Every user sees and revokes their connected apps under **Settings → Connections**, where each one shows whether it was approved for reading or for reading and writing. Revoking takes effect immediately.
+- Expired codes and tokens, and registrations that never completed an authorization, are swept hourly. Unauthenticated registration is rate-limited per address.
+
+Manually issued MCP tokens keep working alongside OAuth.
+
 ## Available Tools
 
 | Tool | Description                                                                    |
@@ -23,40 +35,118 @@ MCP tokens are displayed in the **User Management** list (Admin → Users). Each
 | `get_job` | Get detailed information about a specific job                                  |
 | `list_listings` | Search and list real estate listings with pagination, text search, and filters |
 | `get_listing` | Get full details of a single listing                                           |
+| `calculate_financing` | Work out whether a property is affordable, using a German mortgage model       |
 | `get_current_date_time` | Gets the current date/time for the llm to be used                              |
+
+### Write tools
+
+These change something. Each is annotated so a client can warn before calling it, and each goes through the same ownership, sharing and channel-permission rules as the web UI.
+
+| Tool | Description | Destructive |
+|------|-------------|-------------|
+| `add_listing_note` | Append a note to a listing, keeping what is already there | no |
+| `set_listing_notes` | Replace a listing's notes outright; an empty string clears them | **yes** |
+| `watch_listing` | Put a listing on the watchlist. Repeating it is not an error | no |
+| `unwatch_listing` | Take it off again. Repeating it is not an error | no |
+| `start_job_draft` | Begin the interview that creates a search job | no |
+| `update_job_draft` | Record one answer and get the next question | no |
+| `create_job_from_draft` | Create the job, once the user has confirmed the summary | no |
+| `discard_job_draft` | Throw the interview away | no |
+
+Only `set_listing_notes` is marked destructive, and the rule is narrow on purpose: destructive means *this can overwrite or delete something the user wrote*. A watch flag and an in-memory draft are neither, and marking them destructive would train people to click straight through the prompt that guards the one that is.
+
+Two note tools rather than one with a `mode` parameter, because the annotations are per tool: a single tool would have to be marked destructive, and Claude.ai would then confirm every harmless append.
+
+Watching uses `ensureWatch` / `deleteWatch`, never a toggle - a client that retries a failed `watch_listing` must not silently unwatch the listing.
+
+### Creating a job by interview
+
+A search job needs four things a model cannot invent - a name, at least one search URL from a supported portal, a deal type, and a notification channel - plus a handful of optional filters. Rather than one `create_job` tool with a large payload, the server holds a draft and computes the next question:
+
+1. **name** - up to 40 characters, the same limit the web form enforces.
+2. **providerUrls** - the portal is worked out from the URL's host, so the user is never asked to name it. A URL that is only the portal's homepage is refused: it saves cleanly, runs on schedule and quietly finds nothing.
+3. **dealType** - renting or buying. The URLs usually give it away, and the draft offers that reading, but the question is still asked.
+4. **channelIds** - one or more of the user's own channels. A user with none is told where to create one; the draft waits.
+5. **refinements** - price, size, rooms, blacklist words, travel-time limits, sharing, and whether the job starts switched on. Asked once, and answerable with "skip".
+6. **ready** - the summary is read back to the user, and only then does `create_job_from_draft` with `confirmed=true` create anything.
+
+Why the server keeps the state: putting the interview inside the model works with Claude and does not work with the local models this server is mostly pointed at. They send one guessed payload, or forget an answer given two turns ago.
+
+Details worth knowing:
+
+- The draft lives in memory, keyed by user, for **30 minutes** after the last answer. A restart loses it, which costs one re-interview. A client that reconnects mid-interview picks up where it left off; `start_job_draft` resumes rather than restarts unless `replace: true` is passed.
+- Every list field is the **complete list**, replacing the previous one. An LLM asked to "add one more" reliably resends the whole list and much less reliably works out a delta.
+- An update that gets one field wrong applies **none** of it and reports every problem at once.
+- Everything is re-validated from scratch at creation time. A channel can be made private, an address renamed or a shared user deleted while the interview is running; the interview is not an authorization.
+- Out of scope, deliberately: **area filters** (a polygon is drawn, not described - the created-job response says where to add one), editing or deleting existing jobs, creating notification channels (their secrets must not travel through an LLM), and triggering a run.
+
+Example prompts:
+
+> "Create a new search for two-bedroom flats to rent in Cologne on ImmoScout, notify me on Telegram."
+
+> "Add a note to listing abc123: viewing on Tuesday at 6, agent said pets are fine."
 
 ### Tool Details
 
 #### list_jobs
-- `page` (number, optional) – Page number (default: 1)
-- `pageSize` (number, optional) – Results per page (default: 50, max: 1000). Use pagination to fetch more.
-- `filter` (string, optional) – Free-text filter on job name
+- `page` (number, optional) - Page number (default: 1)
+- `pageSize` (number, optional) - Results per page (default: 50, max: 1000). Use pagination to fetch more.
+- `filter` (string, optional) - Free-text filter on job name
 
 Response: markdown table with columns ID, Name, Enabled, Active Listings. Includes summary and pagination info.
 
 #### get_job
-- `jobId` (string, required) – The job ID to retrieve
+- `jobId` (string, required) - The job ID to retrieve
 
 #### list_listings
-- `page` (number, optional) – Page number (default: 1)
-- `pageSize` (number, optional) – Results per page (default: 50, max: 1000). Use pagination to fetch more.
-- `filter` (string, optional) – Free-text search across title, address, provider, link
-- `jobId` (string, optional) – Filter listings by job ID
-- `activeOnly` (boolean, optional) – When true, only show active listings
-- `provider` (string, optional) – Filter by provider name
-- `createdAfter` (number, optional) – Only include listings created at or after this unix timestamp in milliseconds (e.g. `1772008362564`). Useful for queries like "give me all listings from today".
-- `createdBefore` (number, optional) – Only include listings created at or before this unix timestamp in milliseconds (e.g. `1772008362564`).
-- `minPrice` (number, optional) – Only include listings with price >= this value (e.g. `500`). Numeric, no currency symbol.
-- `maxPrice` (number, optional) – Only include listings with price <= this value (e.g. `1500`). Numeric, no currency symbol.
-- `sortField` (string, optional) – Sort by: created_at, price, size, provider, title, is_active
-- `sortDir` (string, optional) – Sort direction: asc or desc
+- `page` (number, optional) - Page number (default: 1)
+- `pageSize` (number, optional) - Results per page (default: 50, max: 1000). Use pagination to fetch more.
+- `filter` (string, optional) - Free-text search across title, address, provider, link
+- `jobId` (string, optional) - Filter listings by job ID
+- `activeOnly` (boolean, optional) - When true, only show active listings
+- `provider` (string, optional) - Filter by provider name
+- `createdAfter` (number, optional) - Only include listings created at or after this unix timestamp in milliseconds (e.g. `1772008362564`). Useful for queries like "give me all listings from today".
+- `createdBefore` (number, optional) - Only include listings created at or before this unix timestamp in milliseconds (e.g. `1772008362564`).
+- `minPrice` (number, optional) - Only include listings with price >= this value (e.g. `500`). Numeric, no currency symbol.
+- `maxPrice` (number, optional) - Only include listings with price <= this value (e.g. `1500`). Numeric, no currency symbol.
+- `sortField` (string, optional) - Sort by: created_at, price, size, provider, title, is_active
+- `sortDir` (string, optional) - Sort direction: asc or desc
 
 Response: markdown table with columns ID, Title, Address, Price, Size, Provider, Active, Created, Job. Includes summary and pagination info. Use `get_listing` for full details.
 
 > **Note:** All timestamps are **unix timestamps in milliseconds** (e.g. `1772008362564`), not seconds.
 
 #### get_listing
-- `listingId` (string, required) – The listing ID to retrieve
+- `listingId` (string, required) - The listing ID to retrieve
+
+#### calculate_financing
+Prices up a property as a German Annuitätendarlehen and judges it against the 35 % rule.
+
+Every parameter is optional and falls back to the finance profile saved in the UI, so
+`calculate_financing({ listingId: "abc" })` is usually all you need.
+
+- `listingId` (string) - Listing to price up. Its price overrides `purchasePrice`.
+- `purchasePrice` (number) - Purchase price in EUR, when not using a listing
+- `equity` (number) - Eigenkapital in EUR
+- `bundesland` (string) - Two-letter code (`BW`, `BY`, `BE`, `BB`, `HB`, `HH`, `HE`, `MV`, `NI`, `NW`, `RP`, `SL`, `SN`, `ST`, `SH`, `TH`), sets the Grunderwerbsteuer
+- `annualRate` (number) - Sollzins in percent, e.g. `3.8`
+- `tilgung` (number) - Anfängliche Tilgung in percent per year, e.g. `2`
+- `fixedYears` (number) - Zinsbindung in years, e.g. `10`
+- `monthlyPayment` (number) - Monthly instalment in EUR. Overrides `tilgung`; the two are the same quantity from opposite ends
+- `maklerPct` (number) - Buyer's agent commission in percent; `0` for a private sale
+- `netIncome` (number) - Combined monthly net income, overriding the saved profile
+- `livingCosts` (number) - Monthly living costs excluding rent
+
+Response: markdown with the verdict (affordable / a stretch / out of reach), the monthly rate
+and what share of net income it is, the Kaufnebenkosten breakdown, the loan amount, the years
+to payoff, the Restschuld at the end of the Zinsbindung, the debt-free age, and a comparison
+table when several rate scenarios are configured.
+
+Listings are user-scoped exactly as in the other tools: asking for a listing that belongs to
+someone else returns "Listing not found".
+
+> **Note:** The result is an estimate based on standard German purchase costs. It is not
+> financial advice, and the Grunderwerbsteuer table ships as an editable default.
 
 ## Usage with Local LLM (stdio transport)
 
@@ -126,14 +216,62 @@ The LLM will automatically call the appropriate Fredy MCP tools and present the 
 
 > **Tip:** Make sure Fredy is running and the database is accessible before starting the MCP server in LM Studio. The stdio transport initializes its own database connection, so Fredy's main process does not need to be running, but the database file must exist and be up-to-date (migrations applied).
 
+### Claude Desktop Configuration
+
+[Claude Desktop](https://claude.ai/download) supports MCP servers natively via its developer settings.
+
+#### Setup
+
+1. Open **Claude Desktop**
+2. Go to **Settings → Developer → Edit Config** - this opens the `claude_desktop_config.json` file
+3. Add the `fredy` server to the `mcpServers` object:
+
+   ```json
+   {
+     "mcpServers": {
+       "fredy": {
+         "command": "/opt/homebrew/opt/node@22/bin/node",
+         "args": ["/absolute/path/to/fredy/lib/mcp/stdio.js"],
+         "env": {
+           "MCP_TOKEN": "fredy_<your-token>"
+         }
+       }
+     }
+   }
+   ```
+
+   Replace `/absolute/path/to/fredy` with the actual path on your machine (e.g. `/Users/you/dev/fredy`).
+
+   > **Important:** Claude Desktop launches with a restricted `PATH` and often cannot find `node` by name. Always use the **full absolute path** to the node binary. Find yours by running `which node` in a terminal. Common locations:
+   > - Homebrew (default): `/opt/homebrew/bin/node`
+   > - Homebrew (versioned, e.g. node@22): `/opt/homebrew/opt/node@22/bin/node`
+   > - nvm: `/Users/<you>/.nvm/versions/node/<version>/bin/node`
+
+4. Save the file and **restart Claude Desktop**
+5. You should see a hammer icon (🔨) in the chat input - click it to confirm the Fredy tools are listed
+
+#### Usage
+
+Once connected, simply ask Claude about your real estate data:
+
+- *"Show me all my active search jobs"*
+- *"List the latest listings from my Berlin apartment search"*
+- *"What are the cheapest apartments added this week?"*
+
+Claude will automatically call the appropriate Fredy MCP tools.
+
+> **Note:** Fredy's main web process does not need to be running - the stdio transport opens its own database connection directly. But the SQLite database file must exist and migrations must have been applied.
+
+---
+
 ## Usage with Remote LLM (Streamable HTTP transport)
 
 The HTTP transport is automatically available when Fredy is running. It uses the MCP Streamable HTTP protocol at:
 
 ```
-POST   /api/mcp   – JSON-RPC messages (initialize, tool calls)
-GET    /api/mcp   – SSE stream for server-initiated notifications
-DELETE /api/mcp   – Terminate session
+POST   /api/mcp   - JSON-RPC messages (initialize, tool calls)
+GET    /api/mcp   - SSE stream for server-initiated notifications
+DELETE /api/mcp   - Terminate session
 ```
 
 ### Authentication
@@ -182,14 +320,17 @@ curl -X POST http://localhost:9998/api/mcp \
 
 ## Security
 
-- Every user is automatically assigned a permanent MCP token at account creation – **tokens never expire**
+- Every user is automatically assigned a permanent MCP token at account creation - **tokens never expire**
 - Tokens are cryptographically random (256-bit) and prefixed with `fredy_`
-- Each token is scoped to a single user – the LLM can only access that user's data
+- Each token is scoped to a single user - the LLM can only access that user's data
 - Non-admin users only see their own jobs and jobs shared with them
 - Tokens are stored in the `mcp_token` column of the `users` table
 - Tokens are deleted automatically when the owning user is removed
 - The `/api/mcp` endpoint uses Bearer token auth (independent of cookie-session)
-- Treat MCP tokens like passwords – do not share them publicly
+- Treat MCP tokens like passwords - do not share them publicly
+- Write tools enforce the same rules as the web UI: a listing must be one the user can already see, a notification channel must be one they are allowed to send through, and a job can only be shared with a non-admin other user
+- Channel credentials are never returned. The interview is handed a channel list stripped of its `fields` before it reaches the adapter, so a bot token cannot reach an LLM transcript even by accident
+- While **demo mode** is on, every write tool refuses non-admin users. The public demo is read-only over MCP
 
 ## Response Format
 
@@ -204,7 +345,7 @@ Example list response:
 ```
 **Tool:** list_listings | **Status:** OK
 
-Found **85** listing(s). Showing page 1 of 2 (50 on this page). More pages available — use page=2 to continue.
+Found **85** listing(s). Showing page 1 of 2 (50 on this page). More pages available - use page=2 to continue.
 
 | ID | Title | Address | Price | Size | Provider | Active | Created | Job |
 |----|-------|---------|-------|------|----------|--------|---------|-----|

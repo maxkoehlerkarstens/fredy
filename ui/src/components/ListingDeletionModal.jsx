@@ -3,8 +3,9 @@
  * Licensed under Apache-2.0 with Commons Clause and Attribution/Naming Clause
  */
 
-import { useState } from 'react';
-import { Modal, Radio, RadioGroup, Typography } from '@douyinfe/semi-ui-19';
+import { useState, useEffect } from 'react';
+import { Modal, Radio, RadioGroup, Typography, Checkbox } from '@douyinfe/semi-ui-19';
+import { useTranslation } from '../services/i18n/i18n.jsx';
 
 const { Text } = Typography;
 
@@ -12,56 +13,77 @@ const ListingDeletionModal = ({
   visible,
   onConfirm,
   onCancel,
-  title = 'Delete Listings',
+  title,
   showOptions = true,
-  message = 'How would you like to delete the selected listing(s)?',
+  // Whether to offer "remember my choice". The bulk delete turns it off: that preference is what
+  // suppresses the per-row prompt, and a dialog that keeps asking no matter what the box says is
+  // worse than not offering the box.
+  showRemember = true,
+  message,
+  defaultDeleteType = 'soft',
 }) => {
+  const t = useTranslation();
+  const resolvedTitle = title ?? t('listing.deletion.title');
+  const resolvedMessage = message ?? t('listing.deletion.message');
   const [deleteType, setDeleteType] = useState('soft');
+  const [remember, setRemember] = useState(false);
+
+  useEffect(() => {
+    if (visible) {
+      setDeleteType(defaultDeleteType);
+      setRemember(false);
+    }
+  }, [visible, defaultDeleteType]);
 
   const handleOk = () => {
-    onConfirm(!showOptions || deleteType === 'hard');
+    if (showOptions) {
+      onConfirm(deleteType === 'hard', remember);
+    } else {
+      onConfirm(true);
+    }
   };
 
   return (
     <Modal
-      title={title}
+      title={resolvedTitle}
       visible={visible}
       onOk={handleOk}
       onCancel={onCancel}
-      okText="Confirm"
-      cancelText="Cancel"
+      okText={t('listing.deletion.confirm')}
+      cancelText={t('listing.deletion.cancel')}
       style={{ maxWidth: '500px' }}
     >
       <div style={{ marginBottom: 16 }}>
-        <Text>{message}</Text>
+        <Text>{resolvedMessage}</Text>
       </div>
       {showOptions && (
-        <RadioGroup value={deleteType} onChange={(e) => setDeleteType(e.target.value)} style={{ width: '100%' }}>
-          <Radio value="soft" style={{ alignItems: 'flex-start', width: '100%' }}>
-            <div style={{ marginLeft: 8 }}>
-              <Text strong>Mark as deleted (Soft Delete)</Text>
-              <br />
-              <Text type="secondary">
-                Listings are kept in the database but marked as hidden. They will <b>not</b> re-appear during the next
-                scraping session.
-              </Text>
-            </div>
-          </Radio>
-          <Radio value="hard" style={{ marginTop: 16, alignItems: 'flex-start', width: '100%' }}>
-            <div style={{ marginLeft: 8 }}>
-              <Text strong>Remove from database (Hard Delete)</Text>
-              <br />
-              <Text type="secondary">
-                Listings are completely removed from the database.
+        <>
+          <RadioGroup value={deleteType} onChange={(e) => setDeleteType(e.target.value)} style={{ width: '100%' }}>
+            <Radio value="soft" style={{ alignItems: 'flex-start', width: '100%' }}>
+              <div style={{ marginLeft: 8 }}>
+                <Text strong>{t('listing.deletion.softLabel')}</Text>
                 <br />
-                <Text type="warning">
-                  Consequence: They might re-appear when scraping the next time because Fredy won't know they were
-                  previously found.
+                <Text type="secondary">{t('listing.deletion.softDescription')}</Text>
+              </div>
+            </Radio>
+            <Radio value="hard" style={{ marginTop: 16, alignItems: 'flex-start', width: '100%' }}>
+              <div style={{ marginLeft: 8 }}>
+                <Text strong>{t('listing.deletion.hardLabel')}</Text>
+                <br />
+                <Text type="secondary">
+                  {t('listing.deletion.hardDescription')}
+                  <br />
+                  <Text type="warning">{t('listing.deletion.hardConsequence')}</Text>
                 </Text>
-              </Text>
-            </div>
-          </Radio>
-        </RadioGroup>
+              </div>
+            </Radio>
+          </RadioGroup>
+          {showRemember && (
+            <Checkbox checked={remember} onChange={(e) => setRemember(e.target.checked)} style={{ marginTop: 16 }}>
+              {t('listing.deletion.rememberChoice')}
+            </Checkbox>
+          )}
+        </>
       )}
     </Modal>
   );

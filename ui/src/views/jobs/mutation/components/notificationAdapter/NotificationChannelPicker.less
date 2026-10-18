@@ -1,0 +1,19 @@
+/*
+ * Copyright (c) 2026 by Christian Kellner.
+ * Licensed under Apache-2.0 with Commons Clause and Attribution/Naming Clause
+ */
+
+@import '../../../../../tokens.less';
+
+/* This file used to import nothing and colour with `--semi-color-text-1`, `--semi-color-text-2`
+   and `--semi-color-primary`. theme.test.js checks that every `--f-` token is defined in both
+   theme blocks and knows nothing about Semi's variables, so this dialog was outside every theme
+   check the project has. */
+.channelPicker {
+  &__intro {
+    margin: 0 0 @space-3;
+    font-size: @text-sm;
+    line-height: 1.5;
+    color: @color-muted;
+  }
+}

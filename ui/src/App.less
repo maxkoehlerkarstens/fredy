@@ -1,3 +1,5 @@
+@import './tokens.less';
+
 .app {
   height: 100vh;
   width: 100vw;
@@ -14,18 +16,28 @@
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
-    padding: 24px;
-    background-color: var(--semi-color-bg-0);
+    padding: @space-6;
+    background-color: transparent;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
 
     @media (max-width: 768px) {
-      padding: 12px;
+      padding: @space-3;
     }
   }
 }
 
-.semi-icon:not(.semi-tabs-bar .semi-tabs-tab .semi-icon) {
-  vertical-align: middle;
+/* An expanded map covers the viewport, so the page underneath must stop scrolling. The scroll
+   container is the app shell rather than the body, which is why the map sets a body class instead
+   of touching `overflow` itself. */
+body.fredy-map-expanded .app__content {
+  overflow: hidden;
+}
+
+/* While a save bar floats over the bottom of the page, keep what scrolls into view above it. Tabbing
+   or tapping to the next field only scrolled it as far as the bottom edge, which is where the bar
+   sits, so the field that had focus was hidden under it. */
+.app__content:has(.settingsSaveBar) {
+  scroll-padding-bottom: 120px;
 }

@@ -1,0 +1,236 @@
+/*
+ * The two palettes, and the only file in the app that is allowed to contain a colour.
+ *
+ * Everything else refers to a colour through the semantic names in tokens.less, which are thin
+ * aliases onto the custom properties defined here. That indirection is what makes a theme
+ * switchable at all: Less variables are resolved at build time, so a stylesheet that compiled a
+ * hex into a rule can never show a different one at runtime.
+ *
+ * The two blocks below are deliberately complete rather than one block plus a handful of
+ * overrides. A partial light theme silently inherits whichever value the author of a dark rule
+ * happened to pick, and the first token that gets added to one block and forgotten in the other
+ * is invisible until someone switches themes. Every name that exists in one exists in the other.
+ *
+ * Included once, from Index.less. tokens.less is imported by roughly forty stylesheets and must
+ * therefore stay free of rules, or these blocks ship forty times over.
+ *
+ * The selector is Semi UI's own theme attribute (`body[theme-mode]`), so one attribute drives both
+ * Semi's component styles and ours. Semi only recognises `dark`; `light` reads as its default.
+ *
+ * ---
+ *
+ * The greys are warm. Every background, border and secondary text tone carries a little red and
+ * yellow rather than sitting on the neutral axis, which is what makes the dark theme read as a
+ * room with a lamp in it instead of as a switched-off monitor. The warmth is small in absolute
+ * terms - a few points of chroma - and the whole effect comes from it being applied consistently:
+ * a single neutral grey left among warm ones looks like a bug, which is why the KPI hues and the
+ * map panels were pulled over too.
+ *
+ * The steps between base, surface and the recess inside a card are deliberately narrow. Wide steps
+ * stripe a page into bands and make every card shout for the same attention; at a few percent
+ * apart the structure is still legible and nothing competes with the one control that matters.
+ */
+
+:root {
+  // Backgrounds. A warm near-black, and elevation runs lighter as it comes forward.
+  --f-base: #14110f;
+  --f-surface: #1b1714;
+  --f-surface-rgb: 27 23 20;
+  --f-elevated: #221d19;
+  // The recess: a hovered row, a fact tile, the flat fill behind chips and code. Darker than the
+  // surface it sits on, because inside a card the way to say "set into this" is to go down.
+  --f-hover: #191512;
+  --f-solid: #282220;
+  --f-border: #2b2420;
+  --f-border-bright: #3a322d;
+
+  // Accent
+  // Warmer and a shade deeper than the brick red this used to be (#c0564a). The extra warmth is
+  // what ties it to the new backgrounds; the extra depth is what keeps white on it at 4.73:1,
+  // comfortably over AA, which a literally brighter red would not have managed.
+  --f-accent: #c64a37;
+  --f-accent-rgb: 198 74 55;
+  --f-accent-dim: #a63b2b;
+  --f-accent-glow: rgb(198 74 55 / 10%);
+
+  // Der Akzent als Textfarbe. #c64a37 liegt als Text bei 3,97:1 auf --f-base und reisst damit AA;
+  // als Fläche mit weisser Schrift ist er mit 4,73:1 in Ordnung und bleibt unveraendert. Dieser
+  // Schritt ist derselbe Farbton, zwei Stufen heller: 5,40:1 auf --f-base, 5,14:1 auf --f-surface.
+  --f-accent-text: #d9664f;
+
+  // Text. Warm off-white rather than grey-white: pure neutral text on a warm ground reads blue.
+  --f-text: #f2ede8;
+  --f-muted: #9c918a;
+  --f-faint: #5b524c;
+
+  // Semantic
+  // Green is the one colour on this palette that means "an advantage" - cheaper than the market,
+  // service available - and never "a status". Toned below the mockup's #74d398, which glows on a
+  // near-black surface rather than informing.
+  --f-success: #6fbf95;
+  --f-success-rgb: 111 191 149;
+  --f-success-dim: #163024;
+  --f-success-active: #5da881;
+  --f-error: #ce7268;
+  --f-error-rgb: 206 114 104;
+  --f-error-dim: #6e211f;
+  --f-warning: #d2a055;
+  --f-info: #6b93c4;
+  --f-info-rgb: 107 147 196;
+
+  // Fill overlays. Light on dark, dark on light - the one pair that has to invert rather than
+  // shift, because a white wash over a white card is nothing at all. Warm white, so a hover does
+  // not cool the surface it lands on.
+  --f-fill-subtle: rgb(255 244 235 / 4%);
+  --f-fill-1: rgb(255 244 235 / 6%);
+  --f-fill-2: rgb(255 244 235 / 8%);
+  --f-fill-strong: rgb(255 244 235 / 12%);
+
+  // Text inputs. Their own pair because the two themes want opposite constructions: a wash of
+  // light lifts a field off a dark page, while on paper the field is the lighter thing and needs a
+  // drawn edge instead.
+  --f-input-bg: rgb(255 244 235 / 5%);
+  --f-input-border: rgb(255 244 235 / 10%);
+
+  // Scrims and shadows. Warm black rather than neutral: a cold shadow over a warm brown surface
+  // reads as dirt on the screen.
+  --f-scrim: rgb(10 7 5 / 70%);
+  --f-shadow-sm: 0 2px 8px rgb(10 7 5 / 45%);
+  --f-shadow-md: 0 6px 20px -6px rgb(10 7 5 / 55%);
+  --f-shadow-lg: 0 18px 44px -12px rgb(10 7 5 / 70%);
+
+  // KPI card accents
+  // Muted, and their borders taken well down. At full strength four saturated blocks side by side
+  // compete with each other and with the accent, so a card carrying a routine count reads as
+  // urgent. The hues still separate the categories, which is all they are for - and each is warmed
+  // a touch so none of them sits on the neutral axis the rest of the palette has left.
+  --f-blue-text: #7ba4cd;
+  --f-blue-border: #34506b;
+  --f-blue-bg: rgb(123 164 205 / 7%);
+  --f-orange-text: #d4925e;
+  --f-orange-text-rgb: 212 146 94;
+  --f-orange-border: #7c5132;
+  --f-orange-bg: rgb(212 146 94 / 7%);
+  --f-green-text: #6cb193;
+  --f-green-border: #305f4e;
+  --f-green-bg: rgb(108 177 147 / 7%);
+  --f-purple-text: #9d8cc2;
+  --f-purple-text-rgb: 157 140 194;
+  --f-purple-border: #4e4270;
+  --f-purple-bg: rgb(157 140 194 / 7%);
+  --f-gray-text: #9c918a;
+  --f-gray-border: #3a322d;
+  --f-gray-bg: rgb(156 145 138 / 7%);
+
+  // The three lights behind the Donate button. Their own tokens rather than the palette's: an
+  // aurora only reads as light when it is lighter than what it sits on, so on paper it becomes a
+  // pastel wash of the same three hues rather than three dark smudges.
+  --f-aurora-1: #c64a37;
+  --f-aurora-2: rgb(157 140 194 / 70%);
+  --f-aurora-3: rgb(212 146 94 / 60%);
+
+  // The panels that float over the map. Their own set because they sit on cartography rather than
+  // on a page, and need to stay legible over both.
+  --f-map-panel: rgb(27 23 20 / 95%);
+  --f-map-panel-border: #332b26;
+  --f-map-panel-text: #9c918a;
+  --f-map-panel-strong: #ffffff;
+
+  /* Die Vorschaukacheln des Themenwaehlers. Beide Paletten stehen in beiden Bloecken gleich, weil
+     eine Kachel zeigt, wie das *andere* Theme aussieht - im hellen Theme muss die dunkle Kachel
+     dunkel bleiben, sonst bietet sie nichts an. */
+  --f-preview-dark-bg: #14110f;
+  --f-preview-dark-line: #3a322d;
+  --f-preview-light-bg: #f2efea;
+  --f-preview-light-line: #d6cec4;
+}
+
+body[theme-mode='light'] {
+  // Warm paper rather than white. A pure #fff page under a warm red accent reads as unfinished,
+  // and leaves nothing to raise a card above.
+  --f-base: #f2efea;
+  --f-surface: #fbf9f6;
+  --f-surface-rgb: 251 249 246;
+  --f-elevated: #ffffff;
+  // Inverted from dark on purpose: on paper a surface comes forward by getting darker, not lighter.
+  --f-hover: #ece7e0;
+  --f-solid: #e4ded6;
+  --f-border: #e3ddd5;
+  --f-border-bright: #c9c1b7;
+
+  // Two steps darker than the dark-theme accent. The same red that carries white text over AA on
+  // near-black falls below it against paper, which is the wrong side of the line for every primary
+  // button in the app. Same hue, same family, one notch of lightness: 5.66:1 here.
+  --f-accent: #b0442f;
+  --f-accent-rgb: 176 68 47;
+  --f-accent-dim: #953a28;
+  --f-accent-glow: rgb(176 68 47 / 8%);
+
+  // Auf Papier traegt der Akzent selbst als Text: 4,93:1 auf --f-base, 5,38:1 auf --f-surface.
+  --f-accent-text: #b0442f;
+
+  --f-text: #1d1916;
+  --f-muted: #645d56;
+  --f-faint: #958c83;
+
+  // Darkened for contrast on paper. `-dim` is a fill rather than a foreground in both themes, so it
+  // inverts from a deep shade to a light tint instead of following its own hue down.
+  --f-success: #2e7a5a;
+  --f-success-rgb: 46 122 90;
+  --f-success-dim: #ddebe2;
+  --f-success-active: #26684c;
+  --f-error: #ae3b41;
+  --f-error-rgb: 174 59 65;
+  --f-error-dim: #f6dedc;
+  --f-warning: #96690f;
+  --f-info: #3a6ea5;
+  --f-info-rgb: 58 110 165;
+
+  --f-fill-subtle: rgb(38 28 22 / 3%);
+  --f-fill-1: rgb(38 28 22 / 5%);
+  --f-fill-2: rgb(38 28 22 / 7%);
+  --f-fill-strong: rgb(38 28 22 / 11%);
+
+  --f-input-bg: #ffffff;
+  --f-input-border: #d9d2c9;
+
+  --f-scrim: rgb(29 25 22 / 45%);
+  --f-shadow-sm: 0 2px 8px rgb(29 25 22 / 10%);
+  --f-shadow-md: 0 6px 20px -6px rgb(29 25 22 / 16%);
+  --f-shadow-lg: 0 18px 44px -12px rgb(29 25 22 / 22%);
+
+  --f-blue-text: #3c6a9a;
+  --f-blue-border: #c6d4e3;
+  --f-blue-bg: rgb(60 106 154 / 7%);
+  --f-orange-text: #9a5d26;
+  --f-orange-text-rgb: 154 93 38;
+  --f-orange-border: #e8d3b9;
+  --f-orange-bg: rgb(154 93 38 / 7%);
+  --f-green-text: #2e7a5a;
+  --f-green-border: #c6dcd0;
+  --f-green-bg: rgb(46 122 90 / 7%);
+  --f-purple-text: #655898;
+  --f-purple-text-rgb: 101 88 152;
+  --f-purple-border: #d3cce2;
+  --f-purple-bg: rgb(101 88 152 / 7%);
+  --f-gray-text: #645d56;
+  --f-gray-border: #d8d2c9;
+  --f-gray-bg: rgb(100 93 86 / 7%);
+
+  --f-aurora-1: #e8a08e;
+  --f-aurora-2: rgb(190 176 226 / 75%);
+  --f-aurora-3: rgb(244 194 144 / 70%);
+
+  --f-map-panel: rgb(255 255 255 / 95%);
+  --f-map-panel-border: #ddd6cd;
+  --f-map-panel-text: #645d56;
+  --f-map-panel-strong: #1d1916;
+
+  /* Die Vorschaukacheln des Themenwaehlers. Beide Paletten stehen in beiden Bloecken gleich, weil
+     eine Kachel zeigt, wie das *andere* Theme aussieht - im hellen Theme muss die dunkle Kachel
+     dunkel bleiben, sonst bietet sie nichts an. */
+  --f-preview-dark-bg: #14110f;
+  --f-preview-dark-line: #3a322d;
+  --f-preview-light-bg: #f2efea;
+  --f-preview-light-line: #d6cec4;
+}

@@ -4,23 +4,25 @@
  */
 
 import React from 'react';
-
-import { Toast } from '@douyinfe/semi-ui-19';
+import { Toast, Button } from '@douyinfe/semi-ui-19';
+import { IconPlus } from '@douyinfe/semi-icons';
+import { SegmentPart } from '../../components/segment/SegmentPart.jsx';
 import UserTable from '../../components/table/UserTable';
 import { useActions, useSelector } from '../../services/state/store';
-import { IconPlus } from '@douyinfe/semi-icons';
-import { Button } from '@douyinfe/semi-ui-19';
 import UserRemovalModal from './UserRemovalModal';
-import { xhrDelete } from '../../services/xhr';
-import { useNavigate } from 'react-router-dom';
-
+import { xhrDelete, errorMessage } from '../../services/xhr';
+import { useNavigate } from 'react-router';
 import './Users.less';
+import { useTranslation } from '../../services/i18n/i18n.jsx';
 
 const Users = function Users() {
+  const t = useTranslation();
   const actions = useActions();
   const [loading, setLoading] = React.useState(true);
   const users = useSelector((state) => state.user.users);
-  const [userIdToBeRemoved, setUserIdToBeRemoved] = React.useState(null);
+  // The whole row, not just its id: the confirmation dialog names the person and counts the
+  // jobs that go with them, and both of those are already on the row the table handed over.
+  const [userToBeRemoved, setUserToBeRemoved] = React.useState(null);
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -28,50 +30,49 @@ const Users = function Users() {
       await actions.user.getUsers();
       setLoading(false);
     }
-
     init();
   }, []);
 
   const onUserRemoval = async () => {
     try {
-      await xhrDelete('/api/admin/users', { userId: userIdToBeRemoved });
-      Toast.success('User successfully remove');
-      setUserIdToBeRemoved(null);
+      await xhrDelete('/api/admin/users', { userId: userToBeRemoved.id });
+      Toast.success(t('users.toastRemoved'));
+      setUserToBeRemoved(null);
       await actions.jobsData.getJobs();
       await actions.user.getUsers();
     } catch (error) {
-      Toast.error(error);
-      setUserIdToBeRemoved(null);
+      // Same wrong key as everywhere else: the rejection is `{ status, json }`, so `error.error`
+      // was undefined and a refused removal rendered an empty toast.
+      Toast.error(errorMessage(error, t('users.toastRemoveError')));
+      setUserToBeRemoved(null);
     }
   };
 
   return (
-    <div>
-      {!loading && (
-        <React.Fragment>
-          {userIdToBeRemoved && <UserRemovalModal onCancel={() => setUserIdToBeRemoved(null)} onOk={onUserRemoval} />}
-
-          <Button
-            type="primary"
-            className="users__newButton"
-            icon={<IconPlus />}
-            onClick={() => navigate('/users/new')}
-          >
-            New User
+    <div className="settingsShell__page users">
+      {/* Still no h1 of its own - the Administration layout already names the page - but a card
+          title is not an h1, and without one this was the only admin page that never said what
+          its table was or what removing a row does. */}
+      <SegmentPart
+        name={t('users.sectionName')}
+        helpText={t('users.sectionHelp')}
+        helpMode="popover"
+        action={
+          <Button size="small" icon={<IconPlus />} onClick={() => navigate('/admin/users/new')}>
+            {t('users.newUser')}
           </Button>
-
+        }
+      >
+        {!loading && (
           <UserTable
             user={users}
-            onUserEdit={(userId) => {
-              navigate(`/users/edit/${userId}`);
-            }}
-            onUserRemoval={(userId) => {
-              setUserIdToBeRemoved(userId);
-              //throw warning message that all jobs will be removed associated to this user
-              //check if at least 1 admin is available
-            }}
+            onUserEdit={(userId) => navigate(`/admin/users/edit/${userId}`)}
+            onUserRemoval={(userId) => setUserToBeRemoved(users.find((user) => user.id === userId) ?? null)}
           />
-        </React.Fragment>
+        )}
+      </SegmentPart>
+      {!loading && userToBeRemoved && (
+        <UserRemovalModal user={userToBeRemoved} onCancel={() => setUserToBeRemoved(null)} onOk={onUserRemoval} />
       )}
     </div>
   );

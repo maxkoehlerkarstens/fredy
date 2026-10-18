@@ -1,16 +1,131 @@
+@import './themes.less';
+@import './tokens.less';
+
+/* A flat background, deliberately. There used to be a radial accent glow bleeding down from the
+   top here; against the warm near-black it read as a smudge rather than as light, and it put a
+   colour behind every page that only one of them had asked for. */
 body,
 html {
   margin: 0;
   height: 100%;
   width: 100%;
-  background-color: #232429;
+  font-family: @font-ui;
+  background-color: @color-base;
+  color-scheme: dark;
 }
 
+body[theme-mode='light'] {
+  color-scheme: light;
+}
+
+// Semi UI theme overrides
+//
+// Semi ships both themes itself and picks between them on `body[theme-mode=dark]`; these only
+// restate the handful of colours where Fredy's palette differs from its defaults. The right-hand
+// sides are custom properties rather than compiled hexes, so one block covers both themes.
+body {
+  --semi-color-bg-0: @color-base !important;
+  --semi-color-bg-1: @color-surface !important;
+  --semi-color-bg-2: @color-elevated !important;
+  --semi-color-bg-3: @color-border !important;
+  --semi-color-border: @color-border !important;
+  --semi-color-primary: @color-accent !important;
+  --semi-color-primary-hover: @color-accent-dim !important;
+  --semi-color-primary-active: @color-accent-dim !important;
+  --semi-color-primary-light-default: rgb(@color-accent-rgb / 12%) !important;
+  --semi-color-primary-light-hover: rgb(@color-accent-rgb / 18%) !important;
+  --semi-color-primary-light-active: rgb(@color-accent-rgb / 22%) !important;
+  --semi-color-text-0: @color-text !important;
+  --semi-color-text-1: @color-text !important;
+  --semi-color-text-2: @color-muted !important;
+  --semi-color-text-3: @color-faint !important;
+  --semi-color-fill-0: @color-fill-subtle !important;
+  --semi-color-fill-1: @color-fill-1 !important;
+  --semi-color-fill-2: @color-fill-2 !important;
+  --semi-font-family: @font-ui !important;
+}
+
+// Semi table row overrides
 .semi-table-row-head {
-  background-color: #2b2b2b !important;
-  color: #fff !important;
+  background-color: @color-fill-1 !important;
+}
+.semi-table-row-head .semi-table-row-cell {
+  background-color: @color-fill-1 !important;
+  color: @color-muted !important;
+  font-size: @text-xs;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.semi-table-row-cell {
+  background-color: @color-surface !important;
+}
+.semi-table-tbody .semi-table-row:nth-child(even) .semi-table-row-cell {
+  background-color: @color-base !important;
+}
+.semi-table-tbody .semi-table-row:hover .semi-table-row-cell {
+  background-color: @color-hover !important;
 }
 
-.semi-table-row-cell {
-  background-color: #333333 !important;
+// Scrollbar
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: @color-surface;
+}
+::-webkit-scrollbar-thumb {
+  background: @color-border-bright;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: @color-muted;
+}
+
+.semi-icon:not(.semi-tabs-bar .semi-tabs-tab .semi-icon):not(.semi-checkbox .semi-icon) {
+  vertical-align: middle;
+}
+
+// Suppress focus outlines - Semi uses --semi-color-primary (our red) for all rings
+button:focus,
+button:focus-visible,
+.semi-button:focus,
+.semi-button:focus-visible,
+.semi-input-wrapper:focus-within,
+.semi-select:focus-within,
+[tabindex]:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.semi-input-wrapper-focus {
+  border-color: @color-border-bright !important;
+  box-shadow: none !important;
+}
+
+// Semi Toast overrides
+.semi-toast-content {
+  background-color: @color-elevated !important;
+  border: 1px solid @color-border-bright !important;
+  box-shadow: @shadow-md !important;
+}
+
+// Semi Modal overrides
+.semi-modal-content {
+  background: @color-surface !important;
+  border: 1px solid @color-border !important;
+  border-top: 3px solid @color-accent !important;
+  border-radius: 14px !important;
+}
+
+.semi-modal-header {
+  background: transparent !important;
+  border-bottom: 1px solid @color-border !important;
+  border-radius: 14px 14px 0 0 !important;
+  padding: 20px 24px 16px !important;
+}
+
+.semi-modal-mask {
+  background: @color-scrim !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }

@@ -1,0 +1,48 @@
+/*
+ * Copyright (c) 2026 by Christian Kellner.
+ * Licensed under Apache-2.0 with Commons Clause and Attribution/Naming Clause
+ */
+
+@import '../../tokens.less';
+
+.pricePerSqmBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: @space-1;
+  font-size: @text-xs;
+  line-height: 1.5;
+  white-space: nowrap;
+  vertical-align: middle;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+
+  &__value {
+    color: @color-muted;
+  }
+
+  &__deviation {
+    padding: 1px @space-2;
+    border-radius: @radius-chip;
+
+    // Dieselbe Regel wie im Preisänderungs-Badge: die Fläche trägt die Richtung, die Schrift
+    // bleibt lesbar. Unter dem Median ist die Richtung, auf die ein Suchender hofft, also liest
+    // sie sich als die gute; darüber als die teure.
+    color: @color-text;
+
+    &--below {
+      background: @color-success-dim;
+    }
+
+    &--above {
+      background: @color-error-dim;
+    }
+
+    // Keine Farbe für einen gewöhnlichen Angebotspreis. Jedes zweite Inserat neutralgrau
+    // anzustreichen machte die zwei, die nicht gewöhnlich sind, schwerer zu finden, und dafür
+    // allein ist das Badge da.
+    &--inline {
+      color: @color-muted;
+      background: @color-elevated;
+    }
+  }
+}

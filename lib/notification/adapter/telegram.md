@@ -21,6 +21,8 @@ Steps:
    - Private chats: `chat.id` is a positive number
    - Groups/supergroups: `chat.id` is a negative number
 
+**Multiple recipients:** To notify several users individually, enter a comma-separated list of chat IDs in the Chat Id field, e.g. `123456789, 987654321`. Each recipient receives the same messages and gets its own independent rate-limit window. This avoids having to create a group and add the bot to it.
+
 Keep your bot token secret. If `getUpdates` returns an empty list, send a new message and try again, or make sure your bot’s privacy settings allow it to see group messages when used in groups.
 
 #### Getting the thread ID (this is optional to be used for forum topics)
@@ -52,4 +54,14 @@ Example (truncated):
 ```
 Use `chat.id` as `chatId` and `message_thread_id` as `threadId` in your configuration.
 
+#### Custom API url (optional)
+
+If you run a Telegram API relay or a local Bot API server, put its base url into the **API Url** field, e.g. `https://telegram.example.com`. Fredy then calls `<your url>/bot<token>/<method>` instead of the official endpoint. A path prefix is allowed, trailing slashes are ignored.
+
+Leave the field empty to use `https://api.telegram.org`. If the value is not a valid `http`/`https` url, Fredy logs a warning and falls back to the official endpoint, so notifications keep working.
+
 More details about bots and BotFather: https://core.telegram.org/bots#botfather
+
+### Price changes
+
+This adapter also reports **price changes** when price tracking is enabled (Settings > Price tracking, off by default). A price change notification carries the old price, the new price and the percentage, and says whether the price went up or down. Changes smaller than the configured threshold are recorded in the listing's price history but are not sent, so rounding noise does not reach you.

@@ -1,0 +1,1011 @@
+/*
+ * Copyright (c) 2026 by Christian Kellner.
+ * Licensed under Apache-2.0 with Commons Clause and Attribution/Naming Clause
+ */
+
+/* eslint-disable no-console */
+
+import { readFile, readdir, rm, writeFile, mkdir } from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { extractFirstDetailUrl } from './extractDetailUrl.js';
+import { siteOf } from '../../lib/services/immowelt/site.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.join(__dirname, '../..');
+const FIXTURES_DIR = path.join(ROOT, 'test', 'testFixtures');
+const TEST_PROVIDER_PATH = path.join(ROOT, 'test', 'provider', 'testProvider.json');
+
+/**
+ * The list endpoint caps a page at 50 and the provider walks the rest with `offset`, so a fixture
+ * of the first page alone would be a truncated search - `paging.info.count` promising listings the
+ * offline suite can never reach. The pages are merged into one payload instead, keeping the first
+ * response's `paging` so the offline fetch mock can serve them back sliced, page by page.
+ *
+ * The endpoint refuses a search without the token the website fetches first, so the provider's
+ * own token request is used rather than a copy of it.
+ *
+ * @param {string} apiUrl The run's list endpoint.
+ * @param {string} refererUrl The search page the user pasted.
+ * @param {(headers: Object.<string, string>) => Promise<string|null>} fetchSearchToken
+ */
+async function downloadDeutscheWohnenFixtures(apiUrl, refererUrl, fetchSearchToken) {
+  console.log('\nDownloading deutscheWohnen...');
+
+  const headers = {
+    'User-Agent':
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',
+    Accept: 'application/json',
+    Referer: refererUrl,
+  };
+
+  const token = await fetchSearchToken(headers);
+  if (token) {
+    headers['X-VON-Search-Token'] = token;
+  }
+
+  const pageSize = Number.parseInt(new URL(apiUrl).searchParams.get('limit') ?? '', 10) || 50;
+  const listData = { paging: null, results: [] };
+
+  for (let page = 0; page < 10; page++) {
+    const pageUrl = new URL(apiUrl);
+    if (page > 0) {
+      pageUrl.searchParams.set('offset', String(page * pageSize));
+    }
+
+    const listResponse = await fetch(pageUrl, { headers });
+    if (!listResponse.ok) {
+      console.warn(`  Failed to download deutscheWohnen list: ${listResponse.statusText}`);
+      if (page === 0) return;
+      break;
+    }
+
+    const body = await listResponse.json();
+    listData.paging ??= body.paging ?? null;
+    listData.results.push(...(body.results ?? []));
+
+    const total = body?.paging?.info?.count;
+    if ((body.results ?? []).length === 0 || total == null || listData.results.length >= total) break;
+  }
+
+  await writeFile(path.join(FIXTURES_DIR, 'deutscheWohnen_list.json'), JSON.stringify(listData, null, 2), 'utf-8');
+  console.log(`  Saved deutscheWohnen_list.json (${listData.results.length} listings)`);
+
+  const firstListing = listData.results?.[0];
+  if (!firstListing?.slug) {
+    console.warn('  No listing slug found – skipping detail fixture');
+    return;
+  }
+
+  const detailUrl = `https://www.deutsche-wohnen.com/mieten/mietangebote/${firstListing.slug}`;
+  console.log(`  Downloading deutscheWohnen detail (${firstListing.slug})...`);
+  const detailResponse = await fetch(detailUrl, {
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',
+    },
+  });
+
+  if (!detailResponse.ok) {
+    console.warn(`  Failed to download deutscheWohnen detail: ${detailResponse.statusText}`);
+    return;
+  }
+
+  const detailHtml = await detailResponse.text();
+  await writeFile(path.join(FIXTURES_DIR, 'deutscheWohnen_detail.html'), detailHtml, 'utf-8');
+  console.log('  Saved deutscheWohnen_detail.html');
+}
+
+/** A desktop browser, which is what both portals below answer fastest. */
+const BROWSER_USER_AGENT =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+
+/**
+ * willhaben's search page, cut down to the one script tag the provider reads.
+ *
+ * The live page is around 600 KB of Next.js bootstrap wrapped around a single `__NEXT_DATA__`
+ * payload. Keeping only that tag gives a fixture small enough to open in a diff and still exercises
+ * the real parsing path, because the provider looks the tag up by id rather than by position.
+ *
+ * @param {string} url the search url from testProvider.json
+ * @returns {Promise<void>}
+ */
+async function downloadWillhabenFixtures(url) {
+  console.log('\nDownloading willhaben...');
+
+  const response = await fetch(url, {
+    headers: { 'User-Agent': BROWSER_USER_AGENT, 'Accept-Language': 'de-AT,de;q=0.9' },
+  });
+
+  if (!response.ok) {
+    console.warn(`  Failed to download willhaben: ${response.statusText}`);
+    return;
+  }
+
+  const html = await response.text();
+  const match = html.match(/<script id="__NEXT_DATA__"[^>]*>[\s\S]*?<\/script>/);
+  if (!match) {
+    console.warn('  willhaben page carried no __NEXT_DATA__ - skipping fixture');
+    return;
+  }
+
+  const trimmed = [
+    '<!doctype html>',
+    '<html lang="de">',
+    `<head><title>willhaben fixture</title></head>`,
+    '<body>',
+    `<!-- Trimmed to the __NEXT_DATA__ payload, downloaded from ${url} -->`,
+    match[0],
+    '</body>',
+    '</html>',
+    '',
+  ].join('\n');
+
+  await writeFile(path.join(FIXTURES_DIR, 'willhaben.html'), trimmed, 'utf-8');
+  console.log('  Saved willhaben.html');
+}
+
+/**
+ * A tecnocasa group search page and the first advert on it, both as served.
+ *
+ * Downloaded over `fetch` rather than through the browser every other html provider uses, because
+ * the platform hands its data to Vue as JSON attributes and hydration takes those attributes off
+ * the elements again. A rendered fixture therefore carries the cards but not one figure the
+ * provider reads, which is also why the provider itself makes a plain request.
+ *
+ * @param {string} name the provider, `tecnocasa` or `tecnorete`
+ * @param {import('../../lib/types/providerConfig.js').ProviderConfig} providerConfig the initialized provider config
+ * @returns {Promise<void>}
+ */
+async function downloadTecnocasaGroupFixtures(name, providerConfig) {
+  console.log(`\nDownloading ${name}...`);
+
+  const headers = { 'User-Agent': BROWSER_USER_AGENT, 'Accept-Language': 'it-IT,it;q=0.9' };
+
+  const response = await fetch(providerConfig.url, { headers });
+  if (!response.ok) {
+    console.warn(`  Failed to download ${name}: ${response.statusText}`);
+    return;
+  }
+
+  await writeFile(path.join(FIXTURES_DIR, `${name}.html`), await response.text(), 'utf-8');
+  console.log(`  Saved ${name}.html`);
+
+  const listings = await providerConfig.getListings(providerConfig.url);
+  const detailUrl = listings.map((listing) => providerConfig.normalize(listing)?.link).find(Boolean);
+  if (!detailUrl) {
+    console.warn('  No advert found - skipping detail fixture');
+    return;
+  }
+
+  console.log(`  Downloading ${name} detail...`);
+  const detailResponse = await fetch(detailUrl, { headers });
+  if (!detailResponse.ok) {
+    console.warn(`  Failed to download ${name} detail: ${detailResponse.statusText}`);
+    return;
+  }
+
+  await writeFile(path.join(FIXTURES_DIR, `${name}_detail.html`), await detailResponse.text(), 'utf-8');
+  console.log(`  Saved ${name}_detail.html`);
+}
+
+/**
+ * Casa.it is read through the api its android app talks to, so its fixtures are the answers that api
+ * gives: the place the search url names, and one page of the search itself.
+ *
+ * @param {string} url the search url
+ * @returns {Promise<void>}
+ */
+async function downloadCasaApiFixtures(url) {
+  console.log('\nDownloading casa.it api...');
+
+  const { toQuery } = await import('../../lib/services/casa/geography.js');
+  const { translateSearchUrl } = await import('../../lib/services/casa/web-translator.js');
+  const { search } = await import('../../lib/services/casa/search-api.js');
+
+  const slugs = new URL(url).pathname.split('/').filter((segment) => segment !== '');
+  const query = toQuery(slugs[slugs.length - 1] ?? '');
+  const answer = await fetch(
+    `https://smartsuggest.casa.it/smartsuggest/v1/suggest/?query=${encodeURIComponent(query)}&site=it_casa`,
+  );
+  if (!answer.ok) {
+    console.warn(`  Failed to download casa.it places: ${answer.status} ${answer.statusText}`);
+    return;
+  }
+  await writeFile(
+    path.join(FIXTURES_DIR, 'casa_places.json'),
+    JSON.stringify({ [query]: await answer.json() }, null, 2),
+    'utf-8',
+  );
+  console.log(`  Saved casa_places.json (for "${query}")`);
+
+  const translated = await translateSearchUrl(url);
+  if (translated == null) {
+    console.warn(`  Skipping: ${url} is not a search the api can be asked for`);
+    return;
+  }
+  const page = await search({ ...translated, sort: ['date-desc'], page: 1 });
+  // The photos and the descriptions in every other language are most of the payload and none of
+  // what the tests read.
+  for (const advert of page?.results ?? []) {
+    if (advert?.media?.items?.length > 1) advert.media.items = advert.media.items.slice(0, 1);
+    if (advert?.description) advert.description = { it: advert.description.it };
+    if (advert?.title) advert.title = { it: advert.title.it };
+  }
+  await writeFile(path.join(FIXTURES_DIR, 'casa_list.json'), JSON.stringify(page, null, 2), 'utf-8');
+  console.log(`  Saved casa_list.json (${page?.results?.length ?? 0} adverts)`);
+}
+
+/**
+ * Casa.it's map search, cut down to the one script tag the provider reads.
+ *
+ * The map search answers with a page of its own whose store keeps the results under `searchMap`
+ * rather than under `search`, which is why it needs a fixture the town search cannot stand in for.
+ * The live page is around 850 KB of React bootstrap around a single `__INITIAL_STATE__` assignment,
+ * and keeping only that assignment exercises the same parsing path, because the provider looks it
+ * up by name rather than by position.
+ *
+ * @param {string} mapSearchUrl the map search url from testProvider.json
+ * @param {Function} launchBrowser opens the shared browser
+ * @param {Function} closeBrowser closes it again
+ * @param {Function} puppeteerExtractor the extractor the providers themselves use
+ * @returns {Promise<void>}
+ */
+async function downloadCasaMapFixture(mapSearchUrl, launchBrowser, closeBrowser, puppeteerExtractor) {
+  console.log('  Downloading casa map search...');
+
+  const browser = await launchBrowser(mapSearchUrl, {});
+  let html;
+  try {
+    html = await puppeteerExtractor(mapSearchUrl, 'body', { browser, name: 'download_fixtures' });
+  } finally {
+    await closeBrowser(browser);
+  }
+  const match = html?.match(/<script[^>]*>\s*window\.__INITIAL_STATE__[\s\S]*?<\/script>/);
+  if (!match) {
+    console.warn('  casa map search carried no __INITIAL_STATE__ - skipping fixture');
+    return;
+  }
+
+  const trimmed = [
+    '<!doctype html>',
+    '<html lang="it">',
+    '<head><title>casa map fixture</title></head>',
+    '<body>',
+    `<!-- Trimmed to the __INITIAL_STATE__ payload, downloaded from ${mapSearchUrl} -->`,
+    match[0],
+    '</body>',
+    '</html>',
+    '',
+  ].join('\n');
+
+  await writeFile(path.join(FIXTURES_DIR, 'casa_map.html'), trimmed, 'utf-8');
+  console.log('  Saved casa_map.html');
+}
+
+/**
+ * BETTERHOMES answers both a search and one advert's detail from the same endpoint, so both
+ * fixtures are recorded through the provider's own payload builder rather than a URL written out
+ * here - the payload is the whole translation, and a copy of it would drift.
+ *
+ * @param {string} url the search url from testProvider.json
+ * @returns {Promise<void>}
+ */
+async function downloadBetterhomesFixtures(url) {
+  console.log('\nDownloading betterhomes...');
+
+  const { buildSearchPayload } = await import('../../lib/provider/betterhomes.js');
+  const origin = new URL(url).origin;
+  const payload = buildSearchPayload(url);
+
+  const call = (action, data) =>
+    fetch(`${origin}/apirequest`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'User-Agent': BROWSER_USER_AGENT,
+        Referer: url,
+      },
+      body: JSON.stringify({ action, method: 'POST', data }),
+    });
+
+  const listResponse = await call('Object/search', payload);
+  if (!listResponse.ok) {
+    console.warn(`  Failed to download betterhomes list: ${listResponse.statusText}`);
+    return;
+  }
+
+  const rows = await listResponse.json();
+  await writeFile(path.join(FIXTURES_DIR, 'betterhomes_list.json'), JSON.stringify(rows, null, 2), 'utf-8');
+  console.log(`  Saved betterhomes_list.json (${Array.isArray(rows) ? rows.length : 0} listings)`);
+
+  const first = (Array.isArray(rows) ? rows : [])[0];
+  if (first?.uniqueKey == null) {
+    console.warn('  No advert in the search response - skipping detail fixture');
+    return;
+  }
+
+  const detailResponse = await call('Object/detail', {
+    id: first.uniqueKey,
+    countryCode: payload.countryCode,
+    languageCode: payload.languageCode,
+  });
+  if (!detailResponse.ok) {
+    console.warn(`  Failed to download betterhomes detail: ${detailResponse.statusText}`);
+    return;
+  }
+
+  const detail = await detailResponse.json();
+  await writeFile(path.join(FIXTURES_DIR, 'betterhomes_detail.json'), JSON.stringify(detail, null, 2), 'utf-8');
+  console.log(`  Saved betterhomes_detail.json (${first.uniqueKey})`);
+}
+
+/**
+ * Flatfox answers a search in two requests, so it needs two fixtures.
+ *
+ * The pins carry the primary keys of everything matching the search; the second call hydrates those
+ * keys into listings. Recording both is what lets the offline suite exercise the same two-step the
+ * provider performs live.
+ *
+ * @param {string} url the search url from testProvider.json
+ * @returns {Promise<void>}
+ */
+async function downloadFlatfoxFixtures(url) {
+  console.log('\nDownloading flatfox...');
+
+  const headers = { 'User-Agent': BROWSER_USER_AGENT, Accept: 'application/json' };
+  const search = new URLSearchParams(new URL(url).search);
+  search.set('max_count', '100');
+
+  const pinResponse = await fetch(`https://flatfox.ch/api/v1/pin/?${search}`, { headers });
+  if (!pinResponse.ok) {
+    console.warn(`  Failed to download flatfox pins: ${pinResponse.statusText}`);
+    return;
+  }
+
+  const pins = await pinResponse.json();
+  await writeFile(path.join(FIXTURES_DIR, 'flatfox_pins.json'), JSON.stringify(pins, null, 2), 'utf-8');
+  console.log(`  Saved flatfox_pins.json (${Array.isArray(pins) ? pins.length : 0} pins)`);
+
+  const keys = (Array.isArray(pins) ? pins : (pins.results ?? [])).map((pin) => pin?.pk).filter((pk) => pk != null);
+  if (keys.length === 0) {
+    console.warn('  No pins returned - skipping listing fixture');
+    return;
+  }
+
+  const query = new URLSearchParams({ expand: 'cover_image', limit: '0' });
+  for (const key of keys) {
+    query.append('pk', String(key));
+  }
+
+  const listingResponse = await fetch(`https://flatfox.ch/api/v1/public-listing/?${query}`, { headers });
+  if (!listingResponse.ok) {
+    console.warn(`  Failed to download flatfox listings: ${listingResponse.statusText}`);
+    return;
+  }
+
+  const listings = await listingResponse.json();
+  await writeFile(path.join(FIXTURES_DIR, 'flatfox_listings.json'), JSON.stringify(listings, null, 2), 'utf-8');
+  console.log('  Saved flatfox_listings.json');
+}
+
+/**
+ * Records one ImmoScout national site's search and exposé responses.
+ *
+ * The provider name is a parameter rather than a constant because Germany and Austria are answered
+ * by one API off one index, so the two providers differ in the search URL they hand in and in
+ * nothing else - and the offline router tells their recordings apart by the geocode in that URL.
+ *
+ * @param {string} mobileApiUrl The run config's translated `search/list` URL.
+ * @param {string} name Provider id, which is also the fixture prefix.
+ */
+async function downloadImmoscoutFixtures(mobileApiUrl, name = 'immoscout') {
+  console.log(`\nDownloading ${name}...`);
+
+  const listResponse = await fetch(mobileApiUrl, {
+    method: 'POST',
+    headers: {
+      'User-Agent': 'ImmoScout_28.1_26.5.2_._',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ supportedResultListTypes: [], userData: {} }),
+  });
+
+  if (!listResponse.ok) {
+    console.warn(`  Failed to download ${name} list: ${listResponse.statusText}`);
+    return;
+  }
+
+  const listData = await listResponse.json();
+  await writeFile(path.join(FIXTURES_DIR, `${name}_list.json`), JSON.stringify(listData, null, 2), 'utf-8');
+  console.log(`  Saved ${name}_list.json`);
+
+  const exposes = (listData.resultListItems || []).filter((item) => item.type === 'EXPOSE_RESULT');
+  if (exposes.length === 0) {
+    console.warn('  No expose results found – skipping detail fixture');
+    return;
+  }
+
+  const exposeId = exposes[0].item?.id;
+  if (!exposeId) return;
+
+  console.log(`  Downloading ${name} detail (expose ${exposeId})...`);
+  const detailResponse = await fetch(`https://api.mobile.immobilienscout24.de/expose/${exposeId}`, {
+    headers: {
+      'User-Agent': 'ImmoScout_27.3_26.0_._',
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!detailResponse.ok) {
+    console.warn(`  Failed to download ${name} detail: ${detailResponse.statusText}`);
+    return;
+  }
+
+  const detailData = await detailResponse.json();
+  await writeFile(path.join(FIXTURES_DIR, `${name}_detail.json`), JSON.stringify(detailData, null, 2), 'utf-8');
+  console.log(`  Saved ${name}_detail.json`);
+}
+
+/**
+ * Cut the exposé down to the script tag the provider reads its description out of.
+ *
+ * The full page is ~700 KB of micro-frontend bootstrap around it. Keeping the tag on its own gives
+ * the server-state path a fixture that stays small enough to read in a diff, and the marker in the
+ * body proves that path is preferred over the rendered markup - no exposé calls itself a fallback.
+ *
+ * @param {string} detailHtml the exposé page source
+ * @param {string} exposeUrl the url it was downloaded from, for the fixture's header comment
+ * @returns {Promise<void>}
+ */
+async function writeImmoweltServerState(detailHtml, exposeUrl) {
+  const open = detailHtml.indexOf('<script id="__UFRN_LIFECYCLE_SERVERREQUEST__">');
+  const close = open < 0 ? -1 : detailHtml.indexOf('</script>', open);
+  if (close < 0) {
+    console.warn('  Exposé carries no __UFRN_LIFECYCLE_SERVERREQUEST__ tag - skipping server state fixture');
+    return;
+  }
+
+  const fixture = `<!doctype html>
+<!--
+  Trimmed capture of ${exposeUrl}, kept for the server-state path of \`extractExposeDescription\`.
+
+  Everything but the \`__UFRN_LIFECYCLE_SERVERREQUEST__\` script tag is dropped: that tag is the one
+  the provider reads and it is here verbatim, so a change to immowelt's state shape breaks this
+  test the way it breaks production. The paragraph in the body is not from the capture - it is a
+  marker that proves the server state is preferred over the rendered markup, because no exposé
+  describes itself as a fallback.
+-->
+<html lang="de">
+  <head>
+    ${detailHtml.slice(open, close + '</script>'.length)}
+  </head>
+  <body>
+    <div data-testid="cdp-main-description-expandable-text">DOM FALLBACK MARKER</div>
+  </body>
+</html>
+`;
+
+  await writeFile(path.join(FIXTURES_DIR, 'immowelt_detail_serverstate.html'), fixture, 'utf-8');
+  console.log('  Saved immowelt_detail_serverstate.html');
+}
+
+/**
+ * How many adverts the list fixtures of the French providers keep. A full page of any of them -
+ * descriptions, photo lists and all - runs to a megabyte, and a handful exercises every path the
+ * offline suites walk.
+ */
+const LIST_FIXTURE_ADS = 5;
+
+/**
+ * An exposé cut down to what the provider reads off it: the title the price probe parses and the
+ * server state the description and the building facts come from. The live page is ~630 KB of
+ * micro-frontend bootstrap around those two.
+ *
+ * @param {string} detailHtml the exposé page source
+ * @param {string} exposeUrl the url it was downloaded from, for the fixture's header comment
+ * @returns {string|null} the trimmed page, or null when the exposé carries no server state
+ */
+function trimExpose(detailHtml, exposeUrl) {
+  const open = detailHtml.indexOf('<script id="__UFRN_LIFECYCLE_SERVERREQUEST__">');
+  const close = open < 0 ? -1 : detailHtml.indexOf('</script>', open);
+  if (close < 0) return null;
+
+  const title = /<title>[^<]*<\/title>/.exec(detailHtml)?.[0] ?? '';
+  const ogTitle = /<meta property="og:title"[^>]*>/.exec(detailHtml)?.[0] ?? '';
+
+  return `<!doctype html>
+<!--
+  Trimmed capture of ${exposeUrl}: the title the price probe reads and the
+  \`__UFRN_LIFECYCLE_SERVERREQUEST__\` tag the description and building facts come from, both
+  verbatim, so a change on the portal's side breaks the offline test the way it breaks production.
+-->
+<html>
+  <head>
+    ${title}
+    ${ogTitle}
+    ${detailHtml.slice(open, close + '</script>'.length)}
+  </head>
+  <body></body>
+</html>
+`;
+}
+
+/**
+ * The exposé to record: the first advert on one of the provider's own sites.
+ *
+ * SeLoger's results carry Belles Demeures' adverts too, whose links the transport refuses to fetch,
+ * and the newest result is regularly one of them. Taking it lost the detail fixture on a download
+ * that had just deleted the old one.
+ *
+ * @param {Array<string|null|undefined>} links the cards' links, newest first
+ * @param {'immowelt'|'seloger'} provider the provider the fixtures are recorded for
+ * @returns {string|null} the link to record, or null when no card is on the provider's sites
+ */
+export function pickExposeLink(links, provider) {
+  return links.find((link) => siteOf(link)?.provider === provider) ?? null;
+}
+
+/**
+ * Immowelt and SeLoger serve both their result list and their exposé from behind DataDome, so
+ * nothing here can be fetched with a plain `fetch` - the providers' shared transport, which runs
+ * inside the browser page, is used instead. The fixtures mirror exactly what it returns: the
+ * `/classifiedList` payload and one exposé's markup, plus - for immowelt, whose suite pins the
+ * server-state path - that exposé's embedded server state on its own. SeLoger's are recorded
+ * trimmed already (see {@link LIST_FIXTURE_ADS} and {@link trimExpose}); immowelt's are trimmed by
+ * hand, and a download replaces them with the full capture.
+ *
+ * @param {'immowelt'|'seloger'} name the provider, which is also the fixtures' prefix
+ * @param {import('../../lib/types/providerConfig.js').ProviderConfig} runConfig the initialized provider config
+ * @param {Function} launchBrowser
+ * @param {Function} closeBrowser
+ * @returns {Promise<void>}
+ */
+async function downloadClassifiedFixtures(name, runConfig, launchBrowser, closeBrowser) {
+  console.log(`\nDownloading ${name}...`);
+
+  const { fetchExposeHtml, releaseSession } = await import('../../lib/services/immowelt/immoweltBff.js');
+  const browser = await launchBrowser(runConfig.url, {});
+
+  try {
+    const classifieds = await runConfig.getListings(runConfig.url, browser);
+    if (!classifieds?.length) {
+      console.warn(`  ${name} returned no classifieds - skipping fixtures`);
+      return;
+    }
+
+    const kept = name === 'immowelt' ? classifieds : classifieds.slice(0, LIST_FIXTURE_ADS);
+    await writeFile(path.join(FIXTURES_DIR, `${name}_classifieds.json`), JSON.stringify(kept, null, 2), 'utf-8');
+    console.log(`  Saved ${name}_classifieds.json (${kept.length} listings)`);
+
+    // From the cards kept, so the recorded exposé belongs to a card of the recorded list.
+    const exposeUrl = pickExposeLink(
+      kept.map((entry) => runConfig.normalize(entry)?.link),
+      name,
+    );
+    if (!exposeUrl) {
+      console.warn('  No exposé url among the classifieds - skipping detail fixture');
+      return;
+    }
+
+    console.log(`  Downloading ${name} detail (${exposeUrl})...`);
+    const detailHtml = await fetchExposeHtml(browser, exposeUrl);
+    if (!detailHtml) {
+      console.warn(`  Failed to download ${name} detail`);
+      return;
+    }
+
+    if (name === 'immowelt') {
+      await writeFile(path.join(FIXTURES_DIR, 'immowelt_detail.html'), detailHtml, 'utf-8');
+      console.log('  Saved immowelt_detail.html');
+      await writeImmoweltServerState(detailHtml, exposeUrl);
+      return;
+    }
+
+    const trimmed = trimExpose(detailHtml, exposeUrl);
+    if (trimmed == null) {
+      console.warn(`  ${name} exposé carries no server state - skipping detail fixture`);
+      return;
+    }
+    await writeFile(path.join(FIXTURES_DIR, `${name}_detail.html`), trimmed, 'utf-8');
+    console.log(`  Saved ${name}_detail.html`);
+  } finally {
+    await releaseSession(browser);
+    await closeBrowser(browser);
+  }
+}
+
+/**
+ * Bien'ici answers a search in two steps - the places the url names, then the adverts in them -
+ * and the price and activity probes ask one advert's own endpoint, so three fixtures are recorded,
+ * all through the provider's own translator and transport rather than a request written out here.
+ *
+ * @param {string} url the search url from testProvider.json
+ * @returns {Promise<void>}
+ */
+async function downloadBieniciFixtures(url) {
+  console.log('\nDownloading bienici...');
+
+  const { parseSearchUrl } = await import('../../lib/services/bienici/search-model.js');
+  const { fetchAd, lookUpPlace, resolveZoneIds, searchAds } = await import('../../lib/services/bienici/api.js');
+  const search = parseSearchUrl(url);
+
+  // Recorded through the provider's own lookup, so the fixture answers the request production
+  // sends rather than one written out again here.
+  /** @type {Record<string, any>} */
+  const places = {};
+  for (const place of search.places) {
+    const { status, body } = await lookUpPlace(place);
+    if (body == null) {
+      console.warn(`  Failed to look up bienici place '${place.q}': status ${status}`);
+      return;
+    }
+    places[place.q] = body;
+  }
+  await writeFile(path.join(FIXTURES_DIR, 'bienici_places.json'), JSON.stringify(places, null, 2), 'utf-8');
+  console.log(`  Saved bienici_places.json (${Object.keys(places).length} places)`);
+
+  const ads = (await searchAds(search, await resolveZoneIds(search.places, url))).slice(0, LIST_FIXTURE_ADS);
+  const list = { total: ads.length, from: 0, perPage: ads.length, realEstateAds: ads };
+  await writeFile(path.join(FIXTURES_DIR, 'bienici_list.json'), JSON.stringify(list, null, 2), 'utf-8');
+  console.log(`  Saved bienici_list.json (${ads.length} listings)`);
+
+  if (ads[0]?.id == null) {
+    console.warn('  No advert in the search response - skipping detail fixture');
+    return;
+  }
+  const { ad } = await fetchAd(ads[0].id);
+  if (ad == null) {
+    console.warn('  Failed to download bienici detail');
+    return;
+  }
+  await writeFile(path.join(FIXTURES_DIR, 'bienici_detail.json'), JSON.stringify(ad, null, 2), 'utf-8');
+  console.log(`  Saved bienici_detail.json (${ads[0].id})`);
+}
+
+/**
+ * leboncoin's adverts come from its finder endpoint, which answers only a request issued from a
+ * page on www.leboncoin.fr - so the provider's own transport is used, browser and all. The search
+ * answer carries everything the provider reads, so it is the one fixture there is.
+ *
+ * @param {import('../../lib/types/providerConfig.js').ProviderConfig} runConfig the initialized provider config
+ * @param {Function} launchBrowser
+ * @param {Function} closeBrowser
+ * @returns {Promise<void>}
+ */
+async function downloadLeboncoinFixtures(runConfig, launchBrowser, closeBrowser) {
+  console.log('\nDownloading leboncoin...');
+
+  const { releaseSession } = await import('../../lib/services/leboncoin/finder.js');
+  const browser = await launchBrowser(runConfig.url, {});
+
+  try {
+    const ads = await runConfig.getListings(runConfig.url, browser);
+    if (!ads?.length) {
+      console.warn('  leboncoin returned no adverts - skipping fixture');
+      return;
+    }
+    const kept = ads.slice(0, LIST_FIXTURE_ADS);
+    await writeFile(path.join(FIXTURES_DIR, 'leboncoin_list.json'), JSON.stringify(kept, null, 2), 'utf-8');
+    console.log(`  Saved leboncoin_list.json (${kept.length} listings)`);
+  } finally {
+    await releaseSession(browser);
+    await closeBrowser(browser);
+  }
+}
+
+/**
+ * Record each national website through the provider's browser transport.
+ *
+ * @param {string} url the search url, on any of the three sites
+ * @param {Function} launchBrowser
+ * @param {Function} closeBrowser
+ * @returns {Promise<void>}
+ */
+async function downloadIdealistaFixtures(url, launchBrowser, closeBrowser) {
+  const { portalOf } = await import('../../lib/services/idealista/portal.js');
+  const portal = portalOf(url);
+  if (portal == null) {
+    console.warn(`  Skipping ${url}: idealista serves .com, .it and .pt and nothing else`);
+    return;
+  }
+
+  const fixture = portal.country === 'it' ? 'idealista.html' : `idealista_${portal.country}.html`;
+  console.log(`\nDownloading idealista (${portal.host})...`);
+
+  const html = await renderThroughBrowser(url, launchBrowser, closeBrowser);
+  if (html == null) {
+    console.warn(`  The browser did not get past the wall - skipping ${fixture}`);
+    return;
+  }
+
+  await writeFile(path.join(FIXTURES_DIR, fixture), html, 'utf-8');
+  console.log(`  Saved ${fixture}`);
+}
+
+/**
+ * @param {string} url
+ * @param {Function} launchBrowser
+ * @param {Function} closeBrowser
+ * @returns {Promise<string|null>} the page a browser waited the challenge out for
+ */
+async function renderThroughBrowser(url, launchBrowser, closeBrowser) {
+  const { fetchSearchHtml } = await import('../../lib/services/idealista/idealistaSearch.js');
+  // Headful, because that is the only way the interstitial is likely to clear from a desktop.
+  const browser = await launchBrowser(url, { puppeteerHeadless: false });
+  try {
+    return await fetchSearchHtml(url, browser);
+  } finally {
+    await closeBrowser(browser);
+  }
+}
+
+/**
+ * Idealista is read through the mobile api, so the fixtures for that half of the provider are the
+ * answers it gives: the catalogue of locations the search url is looked up in, and one page of the
+ * search itself. The page fixture stands for the whole result set, so the offline mock answers
+ * every page after the first one empty.
+ *
+ * @param {string} url the search url
+ * @returns {Promise<void>}
+ */
+async function downloadIdealistaApiFixtures(url) {
+  console.log('\nDownloading idealista mobile api...');
+
+  const { call, locationsPath, searchPath } = await import('../../lib/services/idealista/mobile-api.js');
+  const { translateSearchUrl } = await import('../../lib/services/idealista/web-translator.js');
+  const { resolveLocationId } = await import('../../lib/services/idealista/locations.js');
+  const { portalOf } = await import('../../lib/services/idealista/portal.js');
+
+  const portal = portalOf(url);
+  if (portal == null) {
+    console.warn(`  Skipping ${url}: idealista serves .com, .it and .pt and nothing else`);
+    return;
+  }
+
+  const search = translateSearchUrl(portal, url);
+  if (search == null) {
+    console.warn(`  Skipping: ${url} is not a search the api can be asked for`);
+    return;
+  }
+
+  const locationId = await resolveLocationId(portal, search.locationSlugs, search);
+  if (locationId == null) {
+    console.warn(`  Skipping: the api catalogue has no "${search.locationSlugs.join('/')}"`);
+    return;
+  }
+
+  const criteria = [
+    ['operation', search.operation],
+    ['propertyType', search.propertyType],
+    ['locale', portal.country],
+  ];
+  const catalogue = {};
+  // The catalogue only serves the list of provinces alongside the children of some location, so the
+  // resolver always opens the country's anchor first. See `lib/services/idealista/locations.js`.
+  for (const level of [portal.provinceAnchor, locationId.split('-').slice(0, 4).join('-')]) {
+    catalogue[level] = await call(portal, locationsPath(portal), { body: [...criteria, ['locationIds', level]] });
+  }
+  await writeFile(path.join(FIXTURES_DIR, 'idealista_locations.json'), JSON.stringify(catalogue, null, 2), 'utf-8');
+  console.log(`  Saved idealista_locations.json (${Object.keys(catalogue).length} levels)`);
+
+  const listing = await call(portal, searchPath(portal), {
+    query: [
+      ['adIds', ''],
+      ['searchType', 'locationIds'],
+    ],
+    body: [
+      ...criteria,
+      ['locationIds', `[${locationId}]`],
+      ['order', 'publicationDate'],
+      ['sort', 'desc'],
+      ['numPage', '1'],
+      ['maxItems', '50'],
+      ['quality', 'high'],
+      ['gallery', 'true'],
+    ],
+  });
+  await writeFile(path.join(FIXTURES_DIR, 'idealista_list.json'), JSON.stringify(listing, null, 2), 'utf-8');
+  console.log(`  Saved idealista_list.json (${listing?.elementList?.length ?? 0} adverts)`);
+}
+
+/**
+ * Fallback for providers that do not expose their listings through the markup (e.g. because they
+ * ship them inside an embedded json payload). Those have no crawl container the selector based
+ * {@link extractFirstDetailUrl} could work with, so the provider's own `getListings` is asked.
+ *
+ * @param {import('../../lib/types/providerConfig.js').ProviderConfig} providerConfig the initialized provider config
+ * @param {any} browser the browser used for the fixture download
+ * @returns {Promise<string|null>} absolute url of the first listing's detail page or null
+ */
+async function detailUrlFromGetListings(providerConfig, browser) {
+  if (typeof providerConfig.getListings !== 'function') return null;
+
+  try {
+    const listings = (await providerConfig.getListings(providerConfig.url, browser)) ?? [];
+    for (const listing of listings) {
+      const link = providerConfig.normalize(listing)?.link;
+      if (typeof link === 'string' && link.startsWith('http')) return link;
+    }
+  } catch (error) {
+    console.warn(`  Could not determine detail url via getListings: ${error.message}`);
+  }
+
+  return null;
+}
+
+async function downloadHtmlProvider(name, providerConfig, launchBrowser, closeBrowser, puppeteerExtractor) {
+  console.log(`\nDownloading ${name}...`);
+
+  const browser = await launchBrowser(providerConfig.url, {});
+  try {
+    const html = await puppeteerExtractor(providerConfig.url, providerConfig.waitForSelector, {
+      browser,
+      name: 'dowload_fixtures',
+    });
+
+    if (!html) {
+      console.warn(`  Failed to download ${name}`);
+      return;
+    }
+
+    await writeFile(path.join(FIXTURES_DIR, `${name}.html`), html, 'utf-8');
+    console.log(`  Saved ${name}.html`);
+
+    // the detail url is taken from the normalized listing, so providers that build their link
+    // inside normalize() instead of exposing a `link` crawl field are covered as well
+    const needsDetailFixture = typeof providerConfig.fetchDetails === 'function';
+
+    if (needsDetailFixture) {
+      const detailUrl =
+        extractFirstDetailUrl(html, providerConfig) ?? (await detailUrlFromGetListings(providerConfig, browser));
+      if (!detailUrl) {
+        console.warn(`  Could not find detail URL in ${name} list page`);
+        return;
+      }
+
+      console.log(`  Downloading ${name} detail...`);
+      const detailHtml = await puppeteerExtractor(detailUrl, null, { browser });
+      if (detailHtml) {
+        await writeFile(path.join(FIXTURES_DIR, `${name}_detail.html`), detailHtml, 'utf-8');
+        console.log(`  Saved ${name}_detail.html`);
+      } else {
+        console.warn(`  Failed to download ${name} detail`);
+      }
+    }
+  } finally {
+    await closeBrowser(browser);
+  }
+}
+
+/**
+ * Reduces the configured providers to those requested on the command line.
+ * Without arguments every provider is downloaded.
+ *
+ * @param {Record<string, object>} testProviderConfig all providers configured in testProvider.json
+ * @param {string[]} requestedProviders provider names passed as cli arguments (case insensitive)
+ * @returns {Record<string, object>} the providers to download fixtures for
+ * @throws {Error} if a requested provider is not configured in testProvider.json
+ */
+export function selectProviders(testProviderConfig, requestedProviders) {
+  if (requestedProviders.length === 0) return testProviderConfig;
+
+  const availableNames = Object.keys(testProviderConfig);
+  const selected = {};
+
+  for (const requested of requestedProviders) {
+    const name = availableNames.find((available) => available.toLowerCase() === requested.toLowerCase());
+    if (name == null) {
+      throw new Error(`Unknown provider '${requested}'. Available providers: ${availableNames.join(', ')}`);
+    }
+    selected[name] = testProviderConfig[name];
+  }
+
+  return selected;
+}
+
+/**
+ * Removes every file inside the fixtures directory so a full download starts from a clean slate.
+ * Prevents fixtures of providers that meanwhile got renamed or removed from lingering around.
+ *
+ * @param {string} fixturesDir the directory holding all fixtures
+ * @returns {Promise<number>} the number of deleted files
+ */
+export async function clearFixtures(fixturesDir) {
+  const entries = await readdir(fixturesDir, { withFileTypes: true });
+  // dot files are infrastructure, not fixtures - deleting .gitkeep would drop the directory from git
+  const files = entries.filter((entry) => entry.isFile() && !entry.name.startsWith('.'));
+
+  await Promise.all(files.map((file) => rm(path.join(fixturesDir, file.name))));
+
+  return files.length;
+}
+
+async function main() {
+  await mkdir(FIXTURES_DIR, { recursive: true });
+
+  const testProviderConfig = JSON.parse(await readFile(TEST_PROVIDER_PATH, 'utf-8'));
+  const requestedProviders = process.argv.slice(2);
+  const providersToDownload = selectProviders(testProviderConfig, requestedProviders);
+
+  // a partial download must keep the fixtures of all other providers intact
+  if (requestedProviders.length === 0) {
+    const deleted = await clearFixtures(FIXTURES_DIR);
+    console.log(`Removed ${deleted} existing fixture(s) before full download.`);
+  }
+
+  const {
+    launchBrowser,
+    closeBrowser,
+    default: puppeteerExtractor,
+  } = await import('../../lib/services/extractor/puppeteerExtractor.js');
+
+  for (const [name, cfg] of Object.entries(providersToDownload)) {
+    const provider = await import(`../../lib/provider/${name}.js`);
+    // Providers are stateless: createConfig() returns a fresh, fully-resolved config instead of
+    // the old init() mutating a shared one. `runConfig.url` is what init() used to write into
+    // `provider.config.url`, including any rewrite the provider applies (immoscout's mobile API,
+    // deutscheWohnen's JSON endpoint).
+    const runConfig = provider.createConfig(cfg, [], []);
+
+    switch (name) {
+      case 'immoscout':
+      case 'immoscoutAt':
+        await downloadImmoscoutFixtures(runConfig.url, name);
+        break;
+      case 'deutscheWohnen':
+        await downloadDeutscheWohnenFixtures(runConfig.url, cfg.url, provider.fetchSearchToken);
+        break;
+      case 'immowelt':
+      case 'seloger':
+        await downloadClassifiedFixtures(name, runConfig, launchBrowser, closeBrowser);
+        break;
+      case 'bienici':
+        await downloadBieniciFixtures(runConfig.url);
+        break;
+      case 'leboncoin':
+        await downloadLeboncoinFixtures(runConfig, launchBrowser, closeBrowser);
+        break;
+      case 'willhaben':
+        await downloadWillhabenFixtures(runConfig.url);
+        break;
+      case 'flatfox':
+        await downloadFlatfoxFixtures(runConfig.url);
+        break;
+      case 'betterhomes':
+        await downloadBetterhomesFixtures(runConfig.url);
+        break;
+      case 'tecnocasa':
+      case 'tecnorete':
+        await downloadTecnocasaGroupFixtures(name, runConfig);
+        break;
+      case 'idealista':
+        // One recording per national site, so a change to the card markup is caught in the language
+        // it was written in. The api fixtures are the Italian search's, which is the one the
+        // offline suite runs end to end.
+        for (const site of [runConfig.url, ...(cfg.otherSiteUrls ?? [])]) {
+          await downloadIdealistaFixtures(site, launchBrowser, closeBrowser);
+        }
+        await downloadIdealistaApiFixtures(runConfig.url);
+        break;
+      case 'casa':
+        await downloadHtmlProvider(name, runConfig, launchBrowser, closeBrowser, puppeteerExtractor);
+        await downloadCasaMapFixture(cfg.mapSearchUrl, launchBrowser, closeBrowser, puppeteerExtractor);
+        await downloadCasaApiFixtures(runConfig.url);
+        break;
+      default:
+        await downloadHtmlProvider(name, runConfig, launchBrowser, closeBrowser, puppeteerExtractor);
+    }
+  }
+
+  console.log(`\nFixtures downloaded for: ${Object.keys(providersToDownload).join(', ')}`);
+}
+
+// only run when executed directly, so the helpers above stay importable from tests
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((err) => {
+    console.error('Error downloading fixtures:', err);
+    process.exit(1);
+  });
+}

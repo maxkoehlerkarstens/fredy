@@ -3,26 +3,21 @@
  * Licensed under Apache-2.0 with Commons Clause and Attribution/Naming Clause
  */
 
-import { Button } from '@douyinfe/semi-ui-19';
 import { xhrPost } from '../../services/xhr';
-import { IconUser } from '@douyinfe/semi-icons';
 
-const Logout = function Logout({ text }) {
-  return (
-    <div>
-      <Button
-        icon={<IconUser />}
-        type="danger"
-        theme="solid"
-        onClick={async () => {
-          await xhrPost('/api/login/logout');
-          location.reload();
-        }}
-      >
-        {text && 'Logout'}
-      </Button>
-    </div>
-  );
-};
-
-export default Logout;
+/**
+ * End the session and start over at the login screen.
+ *
+ * This used to be a button of its own, painted in the error colour with an error-coloured border,
+ * standing in the sidebar's footer next to three other controls in three other idioms. Red means
+ * "this figure is over what you can afford" everywhere else in this application, and signing out is
+ * not a verdict. What is left is the part that was ever specific to it: the request, and the reload
+ * that sends the app back through the login screen because the store still holds the old session's
+ * answers.
+ *
+ * @returns {Promise<void>}
+ */
+export default async function logout() {
+  await xhrPost('/api/login/logout');
+  location.reload();
+}

@@ -3,8 +3,7 @@
  * Licensed under Apache-2.0 with Commons Clause and Attribution/Naming Clause
  */
 
-import { expect } from 'chai';
-import esmock from 'esmock';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { EventEmitter } from 'node:events';
 
 describe('services/jobs/jobExecutionService', () => {
@@ -13,65 +12,105 @@ describe('services/jobs/jobExecutionService', () => {
   let calls;
   let state;
 
-  async function initService() {
+  async function initService(settings = { demoMode: false }) {
     const root = (await import('node:path')).resolve('.');
     const svcPath = root + '/lib/services/jobs/jobExecutionService.js';
     const busPath = root + '/lib/services/events/event-bus.js';
     const jobStoragePath = root + '/lib/services/storage/jobStorage.js';
     const userStoragePath = root + '/lib/services/storage/userStorage.js';
+    const settingsStoragePath = root + '/lib/services/storage/settingsStorage.js';
     const brokerPath = root + '/lib/services/sse/sse-broker.js';
     const utilsPath = root + '/lib/utils.js';
     const loggerPath = root + '/lib/services/logger.js';
+    const notifyPath = root + '/lib/notification/notify.js';
+    const pipelinePath = root + '/lib/FredyPipelineExecutioner.js';
+    const puppeteerPath = root + '/lib/services/extractor/puppeteerExtractor.js';
 
-    // esmock the service with all its collaborators
-    const mod = await esmock(
-      svcPath,
-      {},
-      {
-        [busPath]: { bus },
-        [jobStoragePath]: {
-          getJob: (id) => state.jobsById[id] || null,
-          getJobs: () => state.jobsList.slice(),
-        },
-        [userStoragePath]: {
-          getUsers: () => state.users.slice(),
-          getUser: (id) => state.users.find((u) => u.id === id) || null,
-        },
-        [brokerPath]: {
-          sendToUsers: (...args) => calls.sent.push(args),
-        },
-        [utilsPath]: {
-          duringWorkingHoursOrNotSet: () => false, // avoid startup run
-        },
-        [loggerPath]: {
-          debug: () => {},
-          info: () => {},
-          warn: () => {},
-          error: () => {},
-        },
-        [root + '/lib/services/jobs/run-state.js']: {
-          isRunning: () => false,
-          markRunning: (id) => {
-            calls.markRunning.push(id);
-            return true;
-          },
-          markFinished: () => {},
-        },
+    vi.resetModules();
+    vi.doMock(busPath, () => ({ bus }));
+    vi.doMock(jobStoragePath, () => ({
+      getJob: (id) => state.jobsById[id] || null,
+      getJobs: () => state.jobsList.slice(),
+      updateJobLastRunAt: (id, timestamp) => calls.lastRunUpdates.push({ id, timestamp }),
+    }));
+    vi.doMock(userStoragePath, () => ({
+      getUsers: () => state.users.slice(),
+      getUser: (id) => state.users.find((u) => u.id === id) || null,
+    }));
+    // The service reads settings live rather than from a snapshot handed in at startup, so demo
+    // mode and working hours follow the settings UI without a restart. The mock therefore has to
+    // serve what the scenario configured.
+    vi.doMock(settingsStoragePath, () => ({
+      getSettings: async () => settings,
+    }));
+    vi.doMock(brokerPath, () => ({
+      sendToUsers: (...args) => calls.sent.push(args),
+    }));
+    vi.doMock(utilsPath, () => ({
+      duringWorkingHoursOrNotSet: () => false,
+      getPackageVersion: async () => '0.0.0-test',
+    }));
+    vi.doMock(loggerPath, () => {
+      const m = { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} };
+      return { default: m };
+    });
+    vi.doMock(notifyPath, () => ({ send: async () => [] }));
+    vi.doMock(puppeteerPath, () => ({
+      launchBrowser: async (...args) => {
+        calls.launchBrowser.push(args);
+        return state.browser;
       },
-    );
+      closeBrowser: async (browser) => {
+        calls.closeBrowser.push(browser);
+      },
+    }));
+    vi.doMock(pipelinePath, () => ({
+      default: class {
+        constructor(config, job, providerId, similarityCache, browser) {
+          calls.pipeline.push({ config, job, providerId, similarityCache, browser });
+        }
 
-    // call initializer with minimal deps
-    mod.initJobExecutionService({ providers: [], settings: { demoMode: false }, intervalMs: 0 });
+        async execute() {}
+      },
+    }));
+    vi.doMock(root + '/lib/services/demo/demoService.js', () => ({
+      DEMO_JOB_ID: 'demo-job',
+      isDemoJob: (jobId) => jobId === 'demo-job',
+    }));
+    vi.doMock(root + '/lib/services/tour/tourService.js', () => ({
+      isTourJob: (jobId) => typeof jobId === 'string' && jobId.startsWith('tour-'),
+    }));
+    vi.doMock(root + '/lib/services/jobs/run-state.js', () => ({
+      isRunning: () => false,
+      markRunning: (id) => {
+        calls.markRunning.push(id);
+        return true;
+      },
+      markFinished: (id) => calls.markFinished.push(id),
+    }));
+
+    const mod = await import(svcPath);
+    mod.initJobExecutionService({ providers: state.providers, intervalMs: 0 });
     return mod;
   }
 
   beforeEach(() => {
     bus = new EventEmitter();
-    calls = { sent: [], markRunning: [] };
+    calls = {
+      sent: [],
+      markRunning: [],
+      markFinished: [],
+      lastRunUpdates: [],
+      launchBrowser: [],
+      closeBrowser: [],
+      pipeline: [],
+    };
     state = {
       jobsById: {},
       jobsList: [],
       users: [],
+      providers: [],
+      browser: { connected: true },
     };
   });
 
@@ -87,13 +126,13 @@ describe('services/jobs/jobExecutionService', () => {
 
     bus.emit('jobs:status', { jobId: 'j1', running: true });
 
-    expect(calls.sent.length).to.equal(1, 'sendToUsers should be called once');
+    expect(calls.sent.length, 'sendToUsers should be called once').toBe(1);
     const [recipients, event, data] = calls.sent[0];
-    expect(event).to.equal('jobStatus');
-    expect(data).to.deep.equal({ jobId: 'j1', running: true });
+    expect(event).toBe('jobStatus');
+    expect(data).toEqual({ jobId: 'j1', running: true });
     const got = new Set(recipients);
     const expected = new Set(['owner1', 'u2', 'a1']);
-    expect(got).to.deep.equal(expected);
+    expect(got).toEqual(expected);
   });
 
   it('runs all jobs for admin; only own jobs for regular user', async () => {
@@ -113,12 +152,137 @@ describe('services/jobs/jobExecutionService', () => {
     bus.emit('jobs:runAll', { userId: 'u1' });
     // allow microtasks to flush
     await new Promise((r) => setTimeout(r, 0));
-    expect(new Set(calls.markRunning)).to.deep.equal(new Set(['j1']));
+    expect(new Set(calls.markRunning)).toEqual(new Set(['j1']));
 
     // Admin: all jobs
     calls.markRunning = [];
     bus.emit('jobs:runAll', { userId: 'admin' });
     await new Promise((r) => setTimeout(r, 0));
-    expect(new Set(calls.markRunning)).to.deep.equal(new Set(['j1', 'j2']));
+    expect(new Set(calls.markRunning)).toEqual(new Set(['j1', 'j2']));
+  });
+
+  it('persists last_run_at when a job is executed', async () => {
+    state.jobsById['j1'] = { id: 'j1', enabled: true, userId: 'u1', provider: [] };
+    state.jobsList = [state.jobsById['j1']];
+    state.users = [{ id: 'u1', isAdmin: false }];
+
+    await initService();
+
+    const before = Date.now();
+    bus.emit('jobs:runOne', { jobId: 'j1' });
+    await new Promise((r) => setTimeout(r, 0));
+    const after = Date.now();
+
+    expect(calls.lastRunUpdates.length).toBe(1);
+    const [update] = calls.lastRunUpdates;
+    expect(update.id).toBe('j1');
+    expect(update.timestamp).toBeGreaterThanOrEqual(before);
+    expect(update.timestamp).toBeLessThanOrEqual(after);
+  });
+
+  it('launches and reuses a single shared browser across all providers in a job', async () => {
+    // Providers hand out a fresh config per run instead of mutating a shared one, so the double
+    // mirrors that: createConfig() returns a new object every time it is called.
+    const provider = (id, config) => ({
+      metaInformation: { id },
+      createConfig: vi.fn((sourceConfig, blacklist) => ({ ...config, blacklist })),
+    });
+    state.providers = [
+      provider('api-provider', { url: 'https://api.example/', getListings: vi.fn() }),
+      provider('browser-provider', {
+        url: 'https://browser.example/',
+        getListings: vi.fn(),
+      }),
+      provider('browser-provider-2', {
+        url: 'https://browser-2.example/',
+        getListings: vi.fn(),
+      }),
+    ];
+    state.jobsById.j1 = {
+      id: 'j1',
+      enabled: true,
+      userId: 'u1',
+      provider: state.providers.map(({ metaInformation }) => ({ id: metaInformation.id })),
+    };
+
+    await initService();
+    bus.emit('jobs:runOne', { jobId: 'j1' });
+    await vi.waitFor(() => expect(calls.markFinished).toEqual(['j1']));
+
+    expect(calls.launchBrowser).toEqual([['https://api.example/', {}]]);
+    expect(calls.pipeline.map(({ browser }) => browser)).toEqual([state.browser, state.browser, state.browser]);
+    expect(calls.closeBrowser).toEqual([state.browser]);
+  });
+
+  describe('onboarding tour', () => {
+    const tourJob = {
+      id: 'tour-u1',
+      enabled: true,
+      userId: 'u1',
+      provider: [],
+      blacklist: [],
+      notificationAdapter: [],
+    };
+
+    it('never runs the example job on a run-all, even when somebody switched it on', async () => {
+      const realJob = { ...tourJob, id: 'j1' };
+      state.jobsList = [tourJob, realJob];
+      state.jobsById = Object.fromEntries(state.jobsList.map((job) => [job.id, job]));
+      state.users = [{ id: 'admin', isAdmin: true }];
+
+      await initService();
+      bus.emit('jobs:runAll', { userId: 'admin' });
+      await vi.waitFor(() => expect(calls.markFinished).toEqual(['j1']));
+
+      expect(calls.markRunning).toEqual(['j1']);
+    });
+
+    it('refuses a manual run of the example job, which ignores the enabled flag otherwise', async () => {
+      state.jobsList = [tourJob];
+      state.jobsById = { [tourJob.id]: tourJob };
+
+      await initService();
+      bus.emit('jobs:runOne', { jobId: tourJob.id });
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      expect(calls.markRunning).toEqual([]);
+      expect(calls.lastRunUpdates).toEqual([]);
+    });
+  });
+
+  describe('demo mode', () => {
+    const demoJob = (id) => ({ id, enabled: true, userId: 'u1', provider: [], blacklist: [], notificationAdapter: [] });
+
+    it('runs only the demo job on a run-all', async () => {
+      state.jobsList = [demoJob('demo-job'), demoJob('other-job')];
+      state.jobsById = Object.fromEntries(state.jobsList.map((job) => [job.id, job]));
+
+      await initService({ demoMode: true });
+      bus.emit('jobs:runAll', { userId: null });
+      await vi.waitFor(() => expect(calls.markFinished).toEqual(['demo-job']));
+
+      expect(calls.lastRunUpdates.map((entry) => entry.id)).toEqual(['demo-job']);
+    });
+
+    it('refuses to run a job that is not the demo job', async () => {
+      state.jobsList = [demoJob('other-job')];
+      state.jobsById = Object.fromEntries(state.jobsList.map((job) => [job.id, job]));
+
+      await initService({ demoMode: true });
+      bus.emit('jobs:runOne', { jobId: 'other-job' });
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      expect(calls.markRunning).toEqual([]);
+      expect(calls.lastRunUpdates).toEqual([]);
+    });
+
+    it('still runs the demo job when triggered manually', async () => {
+      state.jobsList = [demoJob('demo-job')];
+      state.jobsById = Object.fromEntries(state.jobsList.map((job) => [job.id, job]));
+
+      await initService({ demoMode: true });
+      bus.emit('jobs:runOne', { jobId: 'demo-job' });
+      await vi.waitFor(() => expect(calls.markFinished).toEqual(['demo-job']));
+    });
   });
 });

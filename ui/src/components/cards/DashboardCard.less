@@ -1,37 +1,76 @@
+@import './DashboardCardColors.less';
+
 .dashboard-card {
   width: 100%;
-  height: 140px;
-  margin-bottom: 16px;
-  transition: transform 0.2s;
-  background-color: rgba(36, 36, 36, 0.9);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--semi-color-border);
-  --pulse-color: rgba(255, 255, 255, 0.1);
+  /* A floor, not a ceiling. A fixed height let a value that wraps to two lines run straight
+     through the description underneath it, which is what an empty-state placeholder or a long
+     figure does on a narrow column. */
+  min-height: 112px;
+  height: 100%;
+  border-radius: @radius-card !important;
+  border: 1px solid @color-border !important;
+  background-color: @color-surface !important;
+  /* Motion on interaction rather than ambient. Every one of these cards used to run an infinite
+     8s glow, so a dashboard of eight sat there pulsing at the user with nothing to report. The
+     lift happens when they point at a card, which is when it means something. */
+  transition:
+    box-shadow @transition-card,
+    transform @transition-card,
+    border-color @transition-card;
   position: relative;
-  z-index: 1;
   overflow: visible;
 
-  &::after {
+  /* The surface stays neutral so a row of cards reads as one calm block. The identity comes from
+     the border instead: coloured at the top edge and fading out towards the bottom, so the accent
+     is a highlight catching the light rather than a tinted box. Painted as a masked gradient over
+     the border box, which is the only way to fade a border along its length. */
+  &::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     border-radius: inherit;
-    box-shadow: 0 4px 25px -2px var(--pulse-color);
-    opacity: 0;
-    animation: pulse 5s infinite ease-in-out;
+    padding: 1px;
+    background: linear-gradient(160deg, var(--card-accent, @color-border-bright) 0%, transparent 55%);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.55;
+    transition: opacity @transition-card;
     pointer-events: none;
-    z-index: -1;
-    will-change: opacity;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px -8px var(--card-glow, @color-border-bright);
+
+    &::before {
+      opacity: 0.9;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:hover {
+      transform: none;
+    }
   }
 
   &__icon {
-    font-size: 20px;
+    font-size: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: var(--card-accent, @color-gray-text);
+  }
+
+  &__title {
+    color: @color-muted !important;
+    font-size: @text-xs !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   &__content {
@@ -39,42 +78,88 @@
   }
 
   &__value {
+    font-size: 1.2rem;
     font-weight: 700;
-    margin-bottom: 4px;
-    color: var(--semi-color-text-0);
+    margin-bottom: @space-1;
+    line-height: 1.25;
+    color: var(--card-value, @color-text);
+  }
+
+  &__desc {
+    color: @color-faint !important;
+    font-size: @text-xs;
   }
 
   &.blue {
-    --pulse-color: var(--semi-color-primary);
-    box-shadow: 0 4px 20px -5px var(--pulse-color);
+    --card-accent: @color-blue-text;
+    --card-glow: @color-blue-border;
+    --card-value: @color-blue-text;
   }
-
   &.orange {
-    --pulse-color: var(--semi-color-warning);
-    box-shadow: 0 4px 20px -5px var(--pulse-color);
+    --card-accent: @color-orange-text;
+    --card-glow: @color-orange-border;
+    --card-value: @color-orange-text;
   }
-
   &.green {
-    --pulse-color: var(--semi-color-success);
-    box-shadow: 0 4px 20px -5px var(--pulse-color);
+    --card-accent: @color-green-text;
+    --card-glow: @color-green-border;
+    --card-value: @color-green-text;
   }
-
   &.purple {
-    --pulse-color: var(--semi-color-info);
-    box-shadow: 0 4px 20px -5px var(--pulse-color);
+    --card-accent: @color-purple-text;
+    --card-glow: @color-purple-border;
+    --card-value: @color-purple-text;
+  }
+  &.gray {
+    --card-accent: @color-gray-text;
+    --card-glow: @color-gray-border;
+    --card-value: @color-gray-text;
   }
 
-  &.gray {
-    --pulse-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 4px 20px -5px var(--pulse-color);
+  /* Die Variante fuer das Dashboard. Vier Kacheln nebeneinander, deren Farben nichts bedeuten,
+     lesen sich als Kategorien, die es nicht gibt. Hier traegt nur die Zahl, und Farbe bleibt der
+     Primaeraktion, der Richtung einer Veraenderung und dem Handlungsbedarf vorbehalten. */
+  &.plain {
+    --card-accent: @color-border-bright;
+    --card-glow: @color-border-bright;
   }
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 0.1;
+/* A card that leads somewhere. It is a real button so it is reachable by keyboard, but it must not
+   look like one: the chevron and the hover lift are what say it is clickable. */
+.dashboard-card__button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dashboard-card__chevron {
+  margin-left: auto;
+  color: @color-faint;
+  transition: color @transition-fast;
+}
+
+.dashboard-card--clickable {
+  transition:
+    border-color @transition-fast,
+    transform @transition-fast;
+
+  &:hover {
+    border-color: @color-border-bright !important;
+    transform: translateY(-1px);
+
+    .dashboard-card__chevron {
+      color: @color-text;
+    }
   }
-  50% {
-    opacity: 0.5;
+
+  &:focus-within {
+    border-color: @color-border-bright !important;
   }
 }

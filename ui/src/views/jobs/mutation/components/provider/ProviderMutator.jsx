@@ -6,21 +6,16 @@
 import { useState, useEffect } from 'react';
 
 import { Banner, Modal, Select, Input } from '@douyinfe/semi-ui-19';
+import { IconExternalOpen } from '@douyinfe/semi-icons';
 import { transform } from '../../../../../services/transformer/providerTransformer';
 import { useSelector } from '../../../../../services/state/store';
-import { IconLikeHeart } from '@douyinfe/semi-icons';
+import { validateProviderUrl } from '../../../../../services/jobs/providerUrl.js';
+import { labelWithFlags } from '../../../../../services/countryFlags.js';
+import { sortProviders } from '../../../../../services/providerOrder.js';
+
 import './ProviderMutator.less';
 import { useScreenWidth } from '../../../../../hooks/screenWidth.js';
-
-const sortProvider = (a, b) => {
-  if (a.key < b.key) {
-    return -1;
-  }
-  if (a.key > b.key) {
-    return 1;
-  }
-  return 0;
-};
+import { useTranslation } from '../../../../../services/i18n/i18n.jsx';
 
 const returnOriginalSelectedProvider = (providerToEdit, provider) => {
   return provider.find((pro) => pro.id === providerToEdit.id);
@@ -33,38 +28,52 @@ export default function ProviderMutator({
   onEditData,
   providerToEdit,
 } = {}) {
+  const t = useTranslation();
   const provider = useSelector((state) => state.provider);
   const [selectedProvider, setSelectedProvider] = useState(null);
-  const [providerUrl, setProviderUrl] = useState(null);
+  const [providerUrl, setProviderUrl] = useState('');
   const [validationMessage, setValidationMessage] = useState(null);
 
   useEffect(() => {
+    // The message is cleared along with the fields. It used to be left behind, so tripping the
+    // error once meant a stale red banner greeted the next "Add new Provider".
+    setValidationMessage(null);
     if (providerToEdit) {
       setSelectedProvider(returnOriginalSelectedProvider(providerToEdit, provider));
-      setProviderUrl(providerToEdit.url);
+      setProviderUrl(providerToEdit.url ?? '');
     } else {
       setSelectedProvider(null);
-      setProviderUrl(null);
+      setProviderUrl('');
     }
   }, [providerToEdit, visible]);
 
   const width = useScreenWidth();
   const isMobile = width <= 850;
 
+  /**
+   * Why the pasted URL cannot be used, in words the user can act on, and at which field.
+   *
+   * The three URL problems belong under the URL field - they are all statements about the thing
+   * that was pasted. The fourth case is "nothing chosen at all", which is not about either field
+   * in particular and stays a notice above both.
+   *
+   * @returns {{ where: 'url'|'form', message: string }|null}
+   */
   const validate = () => {
-    if (selectedProvider == null || selectedProvider.length === 0 || providerUrl == null || providerUrl.length === 0) {
-      return 'Please select a provider and copy the browser url into the textfield after configuring your search parameter.';
+    const { ok, problem, expectedHost } = validateProviderUrl(providerUrl, selectedProvider);
+    if (ok) {
+      return null;
     }
-    try {
-      const url = new URL(providerUrl);
-      if (selectedProvider.baseUrl.indexOf(url.origin) === -1) {
-        return 'The url you have copied is not valid.';
-      }
-      /* eslint-disable no-unused-vars */
-    } catch (ignored) {
-      return 'The url you have copied is not valid.';
+    switch (problem) {
+      case 'bareHost':
+        return { where: 'url', message: t('provider.validationBareHost', { host: expectedHost }) };
+      case 'wrongHost':
+        return { where: 'url', message: t('provider.validationWrongHost', { host: expectedHost }) };
+      case 'unparsable':
+        return { where: 'url', message: t('provider.validationUnparsable') };
+      default:
+        return { where: 'form', message: t('provider.validationSelectAndUrl') };
     }
-    return null;
   };
 
   const onSubmit = (doStore) => {
@@ -89,107 +98,121 @@ export default function ProviderMutator({
             }),
           );
         }
-        setProviderUrl(null);
+        setProviderUrl('');
         setSelectedProvider(null);
+        setValidationMessage(null);
         onVisibilityChanged(false);
       } else {
         setValidationMessage(validationResult);
       }
     } else {
-      setProviderUrl(null);
+      setProviderUrl('');
       setSelectedProvider(null);
+      setValidationMessage(null);
       onVisibilityChanged(false);
     }
   };
 
   return (
     <Modal
-      title={providerToEdit ? 'Editing an existing Provider' : 'Adding a new Provider'}
+      title={providerToEdit ? t('provider.editTitle') : t('provider.defaultTitle')}
       visible={visible}
       onOk={() => onSubmit(true)}
       onCancel={() => onSubmit(false)}
-      style={{ width: isMobile ? '95%' : '50rem' }}
-      okText="Save"
+      // Three short lines and two fields do not need half a screen. It was 50rem, which left the
+      // controls stranded in the left third of an otherwise empty dialog.
+      style={{ width: isMobile ? '95%' : '34rem' }}
+      okText={providerToEdit ? t('provider.save') : t('provider.addAction')}
     >
-      {validationMessage != null && (
+      {validationMessage?.where === 'form' && (
         <Banner
           fullMode={false}
           type="danger"
           closeIcon={null}
-          title={<div style={{ fontWeight: 600, fontSize: '14px', lineHeight: '20px' }}>Error</div>}
-          style={{ marginBottom: '1rem' }}
-          description={validationMessage}
+          className="providerMutator__banner"
+          description={validationMessage.message}
         />
       )}
-      {providerToEdit != null ? (
-        <p>
-          You can now edit the <strong>{providerToEdit.name}</strong> provider's URL in the input field below.
-        </p>
-      ) : (
-        <>
-          <p>
-            Provider are the <IconLikeHeart style={{ color: '#ff0000' }} /> of Fredy. We're supporting multiple Provider
-            such as Immowelt, Kalaydo etc. Select a provider from the list below.
-            <br />
-            Fredy will then open the provider's url in a new tab.
-          </p>
-          <p>
-            You will need to configure your search parameter like you would do when you do a regular search on the
-            provider's website.
-            <br />
-            When the search results are shown on the website, copy the url and paste it into the textfield below.
-          </p>
-        </>
-      )}
-      <Banner
-        fullMode={false}
-        type="warning"
-        closeIcon={null}
-        title={<div style={{ fontWeight: 600, fontSize: '14px', lineHeight: '20px' }}>Warning</div>}
-        style={{ marginBottom: '1rem' }}
-        description={
-          <div>
-            <p>
-              Currently, our Immoscout implementation does not support drawing shapes on a map. Use a radius instead.
-            </p>
-          </div>
-        }
-      />
 
-      <Select
-        filter
-        placeholder="Select a provider"
-        className="providerMutator__fields"
-        disabled={providerToEdit != null}
-        optionList={provider
-          .map((pro) => {
-            return {
-              otherKey: pro.id,
-              value: pro.id,
-              label: pro.name,
-            };
-          })
-          .sort(sortProvider)}
-        style={{ width: 180 }}
-        value={selectedProvider == null ? '' : selectedProvider.id}
-        onChange={(value) => {
-          const selectedProvider = provider.find((pro) => pro.id === value);
-          setSelectedProvider(selectedProvider);
-          window.open(selectedProvider.baseUrl);
-        }}
-      />
-      <br />
-      <br />
-      <Input
-        type="text"
-        placeholder="Provider Url"
-        width={10}
-        className="providerMutator__fields"
-        value={providerUrl}
-        onInput={(e) => {
-          setProviderUrl(e.target.value);
-        }}
-      />
+      {providerToEdit != null ? (
+        <p className="providerMutator__editNote">{t('provider.editDescription', { name: providerToEdit.name })}</p>
+      ) : null}
+
+      {/* Two numbered steps, each holding the field it describes. They used to be three sentences
+          of grey prose above three controls that did not correspond to them: step one said
+          "choose below", step three said "paste it here" and meant a field two rows further
+          down. */}
+      <ol className="providerMutator__steps">
+        <li className="providerMutator__step">
+          <span className="providerMutator__stepTitle">{t('provider.stepChooseTitle')}</span>
+          <Select
+            filter
+            placeholder={t('provider.selectPlaceholder')}
+            className="providerMutator__fields"
+            dropdownClassName="providerMutator__dropdown"
+            disabled={providerToEdit != null}
+            // Sorted by country and then by size, rather than by name: somebody searching in Vienna
+            // should not have to read past every German provider, and the one most people want
+            // should not sit halfway down the list because of its initial.
+            optionList={sortProviders(provider).map((pro) => {
+              return {
+                otherKey: pro.id,
+                value: pro.id,
+                // The flags come from what the provider declared it covers, so one serving two
+                // countries shows both. Only the label carries them - the name stored on the job
+                // stays the plain one.
+                label: labelWithFlags(pro),
+              };
+            })}
+            value={selectedProvider == null ? '' : selectedProvider.id}
+            onChange={(value) => {
+              setSelectedProvider(provider.find((pro) => pro.id === value));
+              setValidationMessage(null);
+            }}
+          />
+
+          {/* The row is reserved whether or not a provider has been picked. It used to appear on
+              selection and push the URL field down under the cursor that had just clicked.
+
+              A link the user clicks, rather than a `window.open()` fired from the Select's
+              onChange. That opened a tab before they had read a word of the instructions, opened a
+              second one if they changed their mind, and was swallowed without a trace by a popup
+              blocker. */}
+          <span className="providerMutator__openRow">
+            {selectedProvider != null && (
+              <a
+                className="providerMutator__openLink"
+                href={selectedProvider.baseUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                <IconExternalOpen />
+                {t('provider.openInNewTab', { name: selectedProvider.name })}
+              </a>
+            )}
+          </span>
+
+          <span className="providerMutator__stepHint">{t('provider.stepChooseHint')}</span>
+        </li>
+
+        <li className="providerMutator__step">
+          <span className="providerMutator__stepTitle">{t('provider.stepPasteTitle')}</span>
+          <Input
+            type="text"
+            placeholder={t('provider.urlPlaceholder')}
+            className="providerMutator__fields"
+            validateStatus={validationMessage?.where === 'url' ? 'error' : 'default'}
+            value={providerUrl}
+            onChange={(value) => {
+              setProviderUrl(value);
+              setValidationMessage(null);
+            }}
+          />
+          {validationMessage?.where === 'url' && (
+            <span className="providerMutator__error">{validationMessage.message}</span>
+          )}
+        </li>
+      </ol>
     </Modal>
   );
 }

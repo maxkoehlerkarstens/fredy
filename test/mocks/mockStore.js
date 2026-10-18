@@ -13,19 +13,99 @@ export const getKnownListingHashesForJobAndProvider = (jobKey, providerId) => {
   return db[providerId] || [];
 };
 
+/**
+ * Forget every stored listing.
+ *
+ * What the real store keeps is memory across runs, which a test running the same listings again is
+ * not asking to inherit from the case before it.
+ * @returns {void}
+ */
+export const resetListings = () => {
+  for (const key of Object.keys(db)) delete db[key];
+};
+
 export const getGeocoordinatesByAddress = (any) => {
   return null;
 };
 
-export function getUserSettings(userId) {
-  return null;
+/**
+ * Every address the pipeline asked the geocoder about, in order.
+ *
+ * A test that cares whether a geocode happened at all needs to see the absence of a call, which a
+ * plain stub cannot show.
+ * @type {string[]}
+ */
+export const geocodedAddresses = [];
+
+/** What the stand-in geocoder answers. Set by a test that needs coordinates back. */
+export let geocodeResult = null;
+
+/**
+ * @param {{lat: number, lng: number}|null} result
+ * @returns {void}
+ */
+export function setGeocodeResult(result) {
+  geocodeResult = result;
 }
 
-export const updateListingDistance = (id, distance) => {
+/**
+ * Stands in for `geoCodingService.geocodeAddress`, recording what it was asked.
+ *
+ * @param {string} address
+ * @returns {{lat: number, lng: number}|null}
+ */
+export const geocodeAddress = (address) => {
+  geocodedAddresses.push(address);
+  return geocodeResult;
+};
+
+let userSettings = null;
+export function setUserSettings(settings) {
+  userSettings = settings;
+}
+export function getUserSettings(userId) {
+  return userSettings;
+}
+
+export async function getSettings() {
+  return { baseUrl: '' };
+}
+
+export function getAddresses(settings) {
+  if (Array.isArray(settings?.home_addresses)) return settings.home_addresses;
+  if (settings?.home_address?.coords) return [{ label: 'Home', ...settings.home_address }];
+  return [];
+}
+
+export const updateListingDistances = (id, distances) => {
   // noop
 };
+/**
+ * The real one reads the stored journeys back onto the listings after a sweep. A test that wants
+ * travel times puts them on the listing itself, so here this only has to leave them alone.
+ */
+export const attachTravelTimes = (listings) => listings;
 export const deletedIds = [];
 export const deleteListingsById = (ids) => {
   deletedIds.push(...ids);
+};
+export const deleteListingsByHash = (hashes) => {
+  deletedIds.push(...hashes);
+};
+/**
+ * The real one reads every stored listing around each new one to work out what a square metre costs
+ * there. There is no table behind these mocks to read, and no assertion in the pipeline tests looks
+ * at the figures, so here it only has to exist - the pipeline calls it on every run.
+ */
+export const applyMarketBenchmark = (jobId, listings) => {
+  // noop
+};
+/**
+ * The real one writes what the scam detector finds into each stored row. There is no row behind
+ * these mocks, and nothing the pipeline does afterwards reads the signals, so like the benchmark it
+ * only has to exist. The detector has tests of its own, against a real database.
+ */
+export const applyScamSignals = (listings) => {
+  // noop
 };
 /* eslint-enable no-unused-vars */

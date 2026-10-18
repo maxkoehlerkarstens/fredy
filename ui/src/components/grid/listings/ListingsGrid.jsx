@@ -3,364 +3,164 @@
  * Licensed under Apache-2.0 with Commons Clause and Attribution/Naming Clause
  */
 
-import { useState, useEffect, useMemo } from 'react';
-import {
-  Card,
-  Col,
-  Row,
-  Image,
-  Button,
-  Space,
-  Typography,
-  Pagination,
-  Toast,
-  Divider,
-  Input,
-  Select,
-  Popover,
-  Empty,
-} from '@douyinfe/semi-ui-19';
-import {
-  IconBriefcase,
-  IconCart,
-  IconClock,
-  IconDelete,
-  IconLink,
-  IconMapPin,
-  IconStar,
-  IconStarStroked,
-  IconSearch,
-  IconFilter,
-  IconActivity,
-  IconEyeOpened,
-} from '@douyinfe/semi-icons';
-import { useNavigate } from 'react-router-dom';
-import ListingDeletionModal from '../../ListingDeletionModal.jsx';
-import no_image from '../../../assets/no_image.jpg';
+import { Link } from 'react-router';
+import { IconBriefcase, IconMapPin, IconPaperclip } from '@douyinfe/semi-icons';
+import no_image from '../../../assets/no_image.png';
+import { listingPictureSrc } from '../../../services/listings/listingPictures.js';
+import { formatEuroPrice } from '../../../services/price/priceService.js';
 import * as timeService from '../../../services/time/timeService.js';
-import { xhrDelete, xhrPost } from '../../../services/xhr.js';
-import { useActions, useSelector } from '../../../services/state/store.js';
-import debounce from 'lodash/debounce';
+import StatusControl from '../../listings/StatusControl.jsx';
+import AffordabilityChip from '../../listings/AffordabilityChip.jsx';
+import { rentIncludesCharges } from '../../../services/finance/rentBasis.js';
+import PriceChangeBadge from '../../listings/PriceChangeBadge.jsx';
+import PricePerSqmBadge from '../../listings/PricePerSqmBadge.jsx';
+import ScamBadge from '../../listings/ScamBadge.jsx';
+import WatchToggle from '../../listings/WatchToggle.jsx';
+import ListingActions from '../../listings/ListingActions.jsx';
+import CommuteBadge from '../../transit/CommuteBadge.jsx';
 
 import './ListingsGrid.less';
-import { IllustrationNoResult, IllustrationNoResultDark } from '@douyinfe/semi-illustrations';
+import { useTranslation, useLocale } from '../../../services/i18n/i18n.jsx';
 
-const { Text } = Typography;
-
-const ListingsGrid = () => {
-  const listingsData = useSelector((state) => state.listingsData);
-  const providers = useSelector((state) => state.provider);
-  const jobs = useSelector((state) => state.jobsData.jobs);
-  const actions = useActions();
-  const navigate = useNavigate();
-
-  const [page, setPage] = useState(1);
-  const pageSize = 40;
-
-  const [sortField, setSortField] = useState('created_at');
-  const [sortDir, setSortDir] = useState('desc');
-  const [freeTextFilter, setFreeTextFilter] = useState(null);
-  const [watchListFilter, setWatchListFilter] = useState(null);
-  const [jobNameFilter, setJobNameFilter] = useState(null);
-  const [activityFilter, setActivityFilter] = useState(null);
-  const [providerFilter, setProviderFilter] = useState(null);
-  const [showFilterBar, setShowFilterBar] = useState(false);
-
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-  const [listingToDelete, setListingToDelete] = useState(null);
-
-  const loadData = () => {
-    actions.listingsData.getListingsData({
-      page,
-      pageSize,
-      sortfield: sortField,
-      sortdir: sortDir,
-      freeTextFilter,
-      filter: { watchListFilter, jobNameFilter, activityFilter, providerFilter },
-    });
-  };
-
-  useEffect(() => {
-    loadData();
-  }, [page, sortField, sortDir, freeTextFilter, providerFilter, activityFilter, jobNameFilter, watchListFilter]);
-
-  const handleFilterChange = useMemo(() => debounce((value) => setFreeTextFilter(value), 500), []);
-
-  useEffect(() => {
-    return () => {
-      // cleanup debounced handler to avoid memory leaks
-      handleFilterChange.cancel && handleFilterChange.cancel();
-    };
-  }, [handleFilterChange]);
-
-  const handleWatch = async (e, item) => {
-    e.preventDefault();
-    e.stopPropagation();
-    try {
-      await xhrPost('/api/listings/watch', { listingId: item.id });
-      Toast.success(item.isWatched === 1 ? 'Listing removed from Watchlist' : 'Listing added to Watchlist');
-      loadData();
-    } catch (e) {
-      console.error(e);
-      Toast.error('Failed to operate Watchlist');
-    }
-  };
-
-  const handlePageChange = (_page) => {
-    setPage(_page);
-  };
-
-  const confirmDeletion = async (hardDelete) => {
-    try {
-      await xhrDelete('/api/listings/', { ids: [listingToDelete], hardDelete });
-      Toast.success('Listing successfully removed');
-      loadData();
-    } catch (error) {
-      Toast.error(error.message || 'Error deleting listing');
-    } finally {
-      setDeleteModalVisible(false);
-      setListingToDelete(null);
-    }
-  };
-
-  const cap = (val) => {
-    return String(val).charAt(0).toUpperCase() + String(val).slice(1);
-  };
-
+/**
+ * @param {{ listings: object[], onWatch: Function, onNavigate: Function, onDelete: Function, onRestore?: Function, onReactivate?: Function, isHiddenView?: boolean, onStatusChange: Function, onApplication?: Function }} props
+ */
+const ListingsGrid = ({
+  listings,
+  onWatch,
+  onNavigate,
+  onDelete,
+  onRestore,
+  onReactivate,
+  isHiddenView = false,
+  onStatusChange,
+  onApplication,
+}) => {
+  const t = useTranslation();
+  const locale = useLocale();
   return (
-    <div className="listingsGrid">
-      <div className="listingsGrid__searchbar">
-        <Input prefix={<IconSearch />} showClear placeholder="Search" onChange={handleFilterChange} />
-        <Popover content="Filter / Sort Results" style={{ color: 'white', padding: '.5rem' }}>
-          <div>
-            <Button
-              icon={<IconFilter />}
-              onClick={() => {
-                setShowFilterBar(!showFilterBar);
+    <div className="listingsGrid__grid">
+      {listings.map((item) => (
+        // No role and no tabIndex. The card carried role="button" while containing seven
+        // interactive children, which ARIA forbids and which a screen reader announces as a button
+        // full of buttons. The click stays as a convenience for the mouse; the keyboard and the
+        // accessibility tree use the title, which is a real link now. A click on that link is the
+        // link's alone: letting it reach the card as well navigated twice - two history entries,
+        // so Back landed on the same listing - and a Ctrl/Cmd-click opened the new tab *and* moved
+        // this one.
+        <div
+          key={item.id}
+          className="listingsGrid__card"
+          onClick={(event) => {
+            if (event.target.closest('a') == null) onNavigate(item.id);
+          }}
+        >
+          <div className="listingsGrid__card__image-wrapper">
+            {/* Decorative: the title says the same thing one line below, and alt={item.title} made
+                a screen reader read every headline twice. */}
+            <img
+              src={listingPictureSrc(item) ?? no_image}
+              alt=""
+              onError={(e) => {
+                e.target.src = no_image;
               }}
             />
+            <ScamBadge listing={item} variant="onImage" />
+            <WatchToggle listing={item} onWatch={onWatch} variant="overlay" />
+            {!item.is_active && <span className="listingsGrid__card__inactive">{t('listings.cardInactive')}</span>}
           </div>
-        </Popover>
-      </div>
-      {showFilterBar && (
-        <div className="listingsGrid__toolbar">
-          <Space wrap style={{ marginBottom: '1rem' }}>
-            <div className="listingsGrid__toolbar__card">
-              <div>
-                <Text strong>Filter by:</Text>
+
+          <div className="listingsGrid__card__body">
+            {/* In the hidden view onNavigate refuses to go anywhere, so the title is not a link
+                there either - a link that leads nowhere is worse than plain text. */}
+            {isHiddenView ? (
+              <span className="listingsGrid__card__title" title={item.title}>
+                {item.title}
+              </span>
+            ) : (
+              <Link className="listingsGrid__card__title" to={`/listings/listing/${item.id}`} title={item.title}>
+                {item.title}
+              </Link>
+            )}
+
+            {item.price && (
+              <div className="listingsGrid__card__price">
+                <span className="listingsGrid__card__amount">{formatEuroPrice(item.price, locale)}</span>
+                {/* Next to the price rather than on a line of its own: it is the same figure said
+                    a second way, and reading the two together is the whole point. */}
+                <PricePerSqmBadge listing={item} />
+                <AffordabilityChip
+                  verdict={item.affordabilityVerdict}
+                  dealType={item.dealType}
+                  chargesIncluded={rentIncludesCharges(item)}
+                />
+                <PriceChangeBadge
+                  price={item.price}
+                  previousPrice={item.previous_price}
+                  changedAt={item.price_changed_at}
+                />
               </div>
-              <div style={{ display: 'flex', gap: '.3rem' }}>
-                <Select
-                  placeholder="Status"
-                  showClear
-                  onChange={(val) => setActivityFilter(val)}
-                  value={activityFilter}
-                >
-                  <Select.Option value={true}>Active</Select.Option>
-                  <Select.Option value={false}>Not Active</Select.Option>
-                </Select>
+            )}
 
-                <Select
-                  placeholder="Watchlist"
-                  showClear
-                  onChange={(val) => setWatchListFilter(val)}
-                  value={watchListFilter}
-                >
-                  <Select.Option value={true}>Watched</Select.Option>
-                  <Select.Option value={false}>Not Watched</Select.Option>
-                </Select>
-
-                <Select
-                  placeholder="Provider"
-                  showClear
-                  onChange={(val) => setProviderFilter(val)}
-                  value={providerFilter}
-                >
-                  {providers?.map((p) => (
-                    <Select.Option key={p.id} value={p.id}>
-                      {p.name}
-                    </Select.Option>
-                  ))}
-                </Select>
-
-                <Select
-                  placeholder="Job Name"
-                  showClear
-                  onChange={(val) => setJobNameFilter(val)}
-                  value={jobNameFilter}
-                >
-                  {jobs?.map((j) => (
-                    <Select.Option key={j.id} value={j.id}>
-                      {j.name}
-                    </Select.Option>
-                  ))}
-                </Select>
+            {item.address && (
+              <div className="listingsGrid__card__meta">
+                <IconMapPin />
+                {item.address}
               </div>
+            )}
+            <div className="listingsGrid__card__meta">
+              <IconBriefcase />
+              {item.provider}
             </div>
-            <Divider layout="vertical" />
-
-            <div className="listingsGrid__toolbar__card">
-              <div>
-                <Text strong>Sort by:</Text>
+            {/* Compact on purpose: on a card the commute is a number you scan past twenty others,
+                not something you read. The detail page shows the full picture. */}
+            <CommuteBadge travelTimes={item.travelTimes} jobId={item.job_id} />
+            {/* Only when there is something to say. A count of nothing on every card would be
+                twenty lines of noise to surface the handful that carry documents - and those are
+                also the listings that survive the retention purge, which is worth spotting. */}
+            {item.attachmentCount > 0 && (
+              <div className="listingsGrid__card__meta">
+                <IconPaperclip />
+                {item.attachmentCount === 1
+                  ? t('listings.cardDocumentsOne')
+                  : t('listings.cardDocuments', { count: item.attachmentCount })}
               </div>
-              <div style={{ display: 'flex', gap: '.3rem' }}>
-                <Select
-                  placeholder="Sort By"
-                  style={{ width: 140 }}
-                  value={sortField}
-                  onChange={(val) => setSortField(val)}
-                >
-                  <Select.Option value="job_name">Job Name</Select.Option>
-                  <Select.Option value="created_at">Listing Date</Select.Option>
-                  <Select.Option value="price">Price</Select.Option>
-                  <Select.Option value="provider">Provider</Select.Option>
-                </Select>
+            )}
 
-                <Select
-                  placeholder="Direction"
-                  style={{ width: 120 }}
-                  value={sortDir}
-                  onChange={(val) => setSortDir(val)}
-                >
-                  <Select.Option value="asc">Ascending</Select.Option>
-                  <Select.Option value="desc">Descending</Select.Option>
-                </Select>
-              </div>
+            <div className="listingsGrid__card__foot">
+              {/* The date the list is ordered by: the portal's own, where it states one, and the
+                  moment Fredy found the listing where it does not. The detail page tells the two
+                  apart. */}
+              <span className="listingsGrid__card__date">
+                {timeService.format(item.published_at ?? item.created_at, false, locale)}
+              </span>
+              {/* A state, not a command, so it sits with the listing's own facts rather than in
+                  the action bar below. */}
+              <span className="listingsGrid__card__status" onClick={(e) => e.stopPropagation()}>
+                <StatusControl
+                  status={item.status?.status ?? null}
+                  compact
+                  onChange={(next) => onStatusChange?.(item, next)}
+                  onTriggerClick={(e) => e.stopPropagation()}
+                />
+              </span>
             </div>
-          </Space>
+          </div>
+
+          {/* One place that stops the click, instead of one call per button inside. */}
+          <div className="listingsGrid__card__actions" onClick={(e) => e.stopPropagation()}>
+            <ListingActions
+              listing={item}
+              density="card"
+              isHiddenView={isHiddenView}
+              onApplication={onApplication}
+              onReactivate={onReactivate}
+              onRestore={onRestore}
+              onDelete={onDelete}
+            />
+          </div>
         </div>
-      )}
-
-      {(listingsData?.result || []).length === 0 && (
-        <Empty
-          image={<IllustrationNoResult />}
-          darkModeImage={<IllustrationNoResultDark />}
-          description="No listings available yet..."
-        />
-      )}
-      <Row gutter={[16, 16]}>
-        {(listingsData?.result || []).map((item) => (
-          <Col key={item.id} xs={24} sm={12} md={8} lg={6} xl={4} xxl={6}>
-            <Card
-              className={`listingsGrid__card ${!item.is_active ? 'listingsGrid__card--inactive' : ''}`}
-              style={{ cursor: 'pointer' }}
-              onClick={() => navigate(`/listings/listing/${item.id}`)}
-              cover={
-                <div style={{ position: 'relative' }}>
-                  <div className="listingsGrid__imageContainer">
-                    <Image
-                      src={item.image_url || no_image}
-                      fallback={no_image}
-                      width="100%"
-                      height={180}
-                      style={{ objectFit: 'cover' }}
-                      preview={false}
-                    />
-                    <Button
-                      icon={
-                        item.isWatched === 1 ? (
-                          <IconStar style={{ color: 'rgba(var(--semi-green-5), 1)' }} />
-                        ) : (
-                          <IconStarStroked />
-                        )
-                      }
-                      theme="light"
-                      shape="circle"
-                      size="small"
-                      className="listingsGrid__watchButton"
-                      onClick={(e) => handleWatch(e, item)}
-                    />
-                  </div>
-                  {!item.is_active && <div className="listingsGrid__inactiveOverlay">Inactive</div>}
-                </div>
-              }
-              bodyStyle={{ padding: '12px' }}
-            >
-              <div className="listingsGrid__content">
-                <Text strong ellipsis={{ showTooltip: true }} className="listingsGrid__title">
-                  {cap(item.title)}
-                </Text>
-                <Space vertical align="start" spacing={2} style={{ width: '100%', marginTop: 8 }}>
-                  <Text type="secondary" icon={<IconCart />} size="small">
-                    {item.price} €
-                  </Text>
-                  <Text
-                    type="secondary"
-                    icon={<IconMapPin />}
-                    size="small"
-                    ellipsis={{ showTooltip: true }}
-                    style={{ width: '100%' }}
-                  >
-                    {item.address || 'No address provided'}
-                  </Text>
-                  <Text type="tertiary" size="small" icon={<IconClock />}>
-                    {timeService.format(item.created_at, false)}
-                  </Text>
-                  <Text type="tertiary" size="small" icon={<IconBriefcase />}>
-                    {item.provider.charAt(0).toUpperCase() + item.provider.slice(1)}
-                  </Text>
-                  {item.distance_to_destination ? (
-                    <Text type="tertiary" size="small" icon={<IconActivity />}>
-                      {item.distance_to_destination} m to chosen address
-                    </Text>
-                  ) : (
-                    <Text type="tertiary" size="small" icon={<IconActivity />}>
-                      Distance cannot be calculated, provide an address
-                    </Text>
-                  )}
-                </Space>
-                <Divider margin=".6rem" />
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <div className="listingsGrid__linkButton" onClick={(e) => e.stopPropagation()}>
-                    <a href={item.link} target="_blank" rel="noopener noreferrer">
-                      <IconLink />
-                    </a>
-                  </div>
-
-                  <Button
-                    type="secondary"
-                    size="small"
-                    title="View Details"
-                    onClick={() => navigate(`/listings/listing/${item.id}`)}
-                    icon={<IconEyeOpened />}
-                  />
-
-                  <Button
-                    title="Remove"
-                    type="danger"
-                    size="small"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setListingToDelete(item.id);
-                      setDeleteModalVisible(true);
-                    }}
-                    icon={<IconDelete />}
-                  />
-                </div>
-              </div>
-            </Card>
-          </Col>
-        ))}
-      </Row>
-      {(listingsData?.result || []).length > 0 && (
-        <div className="listingsGrid__pagination">
-          <Pagination
-            currentPage={page}
-            pageSize={pageSize}
-            total={listingsData?.totalNumber || 0}
-            onPageChange={handlePageChange}
-            showSizeChanger={false}
-          />
-        </div>
-      )}
-      <ListingDeletionModal
-        visible={deleteModalVisible}
-        onConfirm={confirmDeletion}
-        onCancel={() => {
-          setDeleteModalVisible(false);
-          setListingToDelete(null);
-        }}
-      />
+      ))}
     </div>
   );
 };
