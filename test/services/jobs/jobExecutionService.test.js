@@ -67,10 +67,14 @@ describe('services/jobs/jobExecutionService', () => {
     vi.doMock(pipelinePath, () => ({
       default: class {
         constructor(config, job, providerId, similarityCache, browser) {
+          this.providerId = providerId;
           calls.pipeline.push({ config, job, providerId, similarityCache, browser });
         }
 
-        async execute() {}
+        async execute() {
+          // A provider listed here never settles, like one stuck on a wedged browser.
+          if (state.hangingProviders?.includes(this.providerId)) return new Promise(() => {});
+        }
       },
     }));
     vi.doMock(root + '/lib/services/demo/demoService.js', () => ({
@@ -212,6 +216,37 @@ describe('services/jobs/jobExecutionService', () => {
     expect(calls.launchBrowser).toEqual([['https://api.example/', {}]]);
     expect(calls.pipeline.map(({ browser }) => browser)).toEqual([state.browser, state.browser, state.browser]);
     expect(calls.closeBrowser).toEqual([state.browser]);
+  });
+
+  it('cuts off a provider that never finishes, so the job and the scheduler move on', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const provider = (id) => ({
+        metaInformation: { id },
+        createConfig: vi.fn(() => ({ url: `https://${id}.example/` })),
+      });
+      state.providers = [provider('stuck'), provider('healthy')];
+      state.hangingProviders = ['stuck'];
+      state.jobsById.j1 = {
+        id: 'j1',
+        name: 'Hanging job',
+        enabled: true,
+        userId: 'u1',
+        provider: [{ id: 'stuck' }, { id: 'healthy' }],
+      };
+
+      await initService();
+      bus.emit('jobs:runOne', { jobId: 'j1' });
+      await vi.advanceTimersByTimeAsync(15 * 60_000 + 1000);
+
+      expect(calls.markFinished).toEqual(['j1']);
+      expect(calls.pipeline.map(({ providerId }) => providerId)).toEqual(['stuck', 'healthy']);
+      // The wedged browser is thrown away and the next provider gets a fresh one.
+      expect(calls.launchBrowser.length).toBe(2);
+      expect(calls.closeBrowser.length).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   describe('onboarding tour', () => {
